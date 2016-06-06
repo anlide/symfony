@@ -1,0 +1,50 @@
+{
+  "name": "symfony/symfony-local",
+  "license": "MIT",
+  "type": "project",
+  "description": "Symfony Anlide Application",
+  "autoload": {
+    "psr-4": { "": "src/" },
+    "classmap": [ "app/AppKernel.php", "app/AppCache.php" ]
+  },
+  "require": {
+    "php": ">=5.6.3",
+    "symfony/symfony": "3.1.*",
+    "doctrine/orm": "^2.5",
+    "doctrine/doctrine-bundle": "^1.6",
+    "doctrine/doctrine-cache-bundle": "^1.2",
+    "symfony/swiftmailer-bundle": "^2.3",
+    "symfony/monolog-bundle": "^2.8",
+    "symfony/polyfill-apcu": "^1.0",
+    "sensio/distribution-bundle": "^5.0",
+    "sensio/framework-extra-bundle": "^3.0.2",
+    "incenteev/composer-parameter-handler": "^2.0",
+    "twbs/bootstrap": "~3.3",
+    "components/jquery": "^2.0",
+    "components/jqueryui": "^1.11",
+    "sunra/angularjs-symfony2-bundle": "dev-master"
+  },
+  "require-dev": {
+    "sensio/generator-bundle": "^3.0",
+    "symfony/phpunit-bridge": "^3.0"
+  },
+  "config": {
+    "bin-dir": "bin",
+    "platform": {
+      "php": "5.6.3"
+    },
+    "component-dir": "web/assets"
+  },
+  "extra": {
+    "symfony-app-dir": "app",
+    "symfony-web-dir": "web",
+    "symfony-assets-install": "relative",
+    "incenteev-parameters": {
+      "file": "app/config/parameters.yml",
+      "env-map": {
+        "database_url": "mysql://root:@127.0.0.1:3306/symfony",
+        "secret": "secret123"
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container" ng-controller="UserController as user">
+        <h1 class="text-center">Закрытый клуб культистов SYMFONY-поклонников</h1>
+        <div class="form-signin">
+            <button class="btn btn-lg btn-block btn-primary" ng-click="user.onLogout()">Выход</button>
+            <button class="btn btn-lg btn-block btn-primary" ng-click="user.onProfile()">В профиль</button>
+        </div>
+
+        <div>
+            Тут будет список доступных для пользователя сообщений.
+        </div>
+    </div> <!-- /container -->
+{% endblock %}
