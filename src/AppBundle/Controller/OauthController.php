@@ -32,7 +32,7 @@ class OauthController extends Controller
       $oauth->fetchUserData($code, $request->getHost());
     } catch (\Exception $e) {
       // По какой-то причине данные не может получить
-      return $this->json(array($e->getMessage(), $oauth));
+      return $this->json(array($e->getMessage(), $oauth, $request->getRequestUri(), $code));
     }
     /**
      * @var User $user
@@ -59,14 +59,14 @@ class OauthController extends Controller
     // NOTE: что-то не так с моим nginx сервером (и QUERY_STRING приходит пустой, хотя конфиг явно правильный)
     // Нет времени изучать каксделать правильно через "$code = $request->query->get('code');"
     // Поэтому сделано немного порагульному получение $code
-    preg_match('~^/oauth/vk\?code\=(.*)$~', $request->getRequestUri(), $m);
+    preg_match('~^/oauth/google\?code\=(.*)$~', $request->getRequestUri(), $m);
     $code = $m[1];
     try {
       $oauth = OauthAbstract::getInstance('Google');
       $oauth->fetchUserData($code, $request->getHost());
     } catch (\Exception $e) {
       // По какой-то причине данные не может получить
-      return $this->json(array($e->getMessage(), $oauth));
+      return $this->json(array($e->getMessage(), $oauth, $request->getRequestUri(), $code));
     }
     /**
      * @var User $user
