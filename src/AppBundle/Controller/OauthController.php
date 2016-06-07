@@ -9,6 +9,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\Request;
 
+/**
+ * TODO: внимание!!
+ * Наверное как-то можно объеденить методы vkAction и googleAction, но я за разумное время не могу найти как парсить uri и протестировать это
+ * Class OauthController
+ * @package AppBundle\Controller
+ */
 class OauthController extends Controller
 {
   /**
@@ -18,8 +24,8 @@ class OauthController extends Controller
   {
     $code = $request->query->get('code');
     try {
-      $vk = OauthAbstract::getInstance('Vk');
-      $vk->fetchUserData($code, $request->getHost());
+      $oauth = OauthAbstract::getInstance('Vk');
+      $oauth->fetchUserData($code, $request->getHost());
     } catch (\Exception $e) {
       // По какой-то причине данные не может получить
       return $this->redirect($request->getSchemeAndHttpHost());
@@ -29,12 +35,42 @@ class OauthController extends Controller
      */
     $user = $this->getDoctrine()
       ->getRepository('AppBundle:User')
-      ->findOneBy(array('vk' => $vk->providerKey));
+      ->findOneBy(array('vk' => $oauth->providerKey));
     $session = $request->getSession();
     $session->start();
     if ($user === null) {
       // Пользователя нет - значит надо предложить закончить регистрацию
-      $session->set('oauth', $vk);
+      $session->set('oauth', $oauth);
+      return $this->redirect($request->getSchemeAndHttpHost().'/oauth/register');
+    }
+    // Пользователь есть - значит пишем его в сессию и обновляем страницу
+    $session->set('user', $user->getId());
+    return $this->redirect($request->getSchemeAndHttpHost());
+  }
+  /**
+   * @Route("/oauth/google", name="oauth_google")
+   */
+  public function googleAction(Request $request)
+  {
+    $code = $request->query->get('code');
+    try {
+      $oauth = OauthAbstract::getInstance('Google');
+      $oauth->fetchUserData($code, $request->getHost());
+    } catch (\Exception $e) {
+      // По какой-то причине данные не может получить
+      return $this->redirect($request->getSchemeAndHttpHost());
+    }
+    /**
+     * @var User $user
+     */
+    $user = $this->getDoctrine()
+      ->getRepository('AppBundle:User')
+      ->findOneBy(array('google' => $oauth->providerKey));
+    $session = $request->getSession();
+    $session->start();
+    if ($user === null) {
+      // Пользователя нет - значит надо предложить закончить регистрацию
+      $session->set('oauth', $oauth);
       return $this->redirect($request->getSchemeAndHttpHost().'/oauth/register');
     }
     // Пользователь есть - значит пишем его в сессию и обновляем страницу
@@ -52,7 +88,7 @@ class OauthController extends Controller
     return $this->render('oauth.register.html.twig', array('vk' => $vk));
   }
   /**
-   * @Route("/oauth/register/finish", name="oauth_register_finish")
+   * @Route("/oauth/register-finish", name="oauth_register_finish")
    */
   public function registerFinishAction(Request $request)
   {
