@@ -92,8 +92,13 @@ class OauthController extends Controller
   {
     $session = $request->getSession();
     $session->start();
-    $vk = $session->get('oauth');
-    return $this->render('oauth.register.html.twig', array('vk' => $vk));
+    /**
+     * @var OauthAbstract $oauth
+     */
+    $oauth = $session->get('oauth');
+    if ($oauth === null) return $this->redirect($request->getSchemeAndHttpHost());
+    if (empty($oauth->user)) return $this->redirect($request->getSchemeAndHttpHost());
+    return $this->render('oauth.register.html.twig', array('oauth' => $oauth));
   }
   /**
    * @Route("/oauth/register-finish", name="oauth_register_finish")
