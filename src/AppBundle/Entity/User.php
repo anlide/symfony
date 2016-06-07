@@ -41,6 +41,10 @@ class User
      * @ORM\Column(name="google", type="text")
      */
     public $google = null;
+    /**
+     * @ORM\Column(name="name", type="text")
+     */
+    public $name = null;
 
     /**
      * Get id
@@ -52,7 +56,7 @@ class User
         return $this->id;
     }
 
-  function generateRandomString($length = 7) {
+  public function generateRandomString($length = 7) {
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $charactersLength = strlen($characters);
     $randomString = '';
@@ -62,14 +66,11 @@ class User
     return $randomString;
   }
 
-  public static function getByEmail($email) {
-    $obj = new self();
-  }
-
     public function register($email, $password) {
         $this->email = $email;
         $this->password = md5($password);
         $this->confirmCode = $this->generateRandomString();
+        $this->name = $email;
     }
 }
 
