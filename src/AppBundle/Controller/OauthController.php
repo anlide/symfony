@@ -108,15 +108,22 @@ class OauthController extends Controller
     $session = $request->getSession();
     $session->start();
     /**
-     * @var OauthVk $vk
+     * @var OauthAbstract $oauth
      */
-    $vk = $session->get('oauth');
+    $oauth = $session->get('oauth');
     $user = new User();
     $user->email = null;
     $user->password = null;
     $user->confirmCode = null;
-    $user->name = $vk->user;
-    $user->vk = $vk->providerKey;
+    $user->name = $oauth->user;
+    switch ($oauth->provider) {
+      case 'vk':
+        $user->vk = $oauth->providerKey;
+        break;
+      case 'google':
+        $user->google = $oauth->providerKey;
+        break;
+    }
     $em = $this->getDoctrine()->getManager();
     $em->persist($user);
     $em->flush();
