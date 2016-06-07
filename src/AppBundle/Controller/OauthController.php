@@ -23,6 +23,7 @@ class OauthController extends Controller
   public function vkAction(Request $request)
   {
     $code = $request->query->get('code');
+    var_dump($code, $request); exit;
     try {
       $oauth = OauthAbstract::getInstance('Vk');
       $oauth->fetchUserData($code, $request->getHost());
