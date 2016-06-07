@@ -58,7 +58,43 @@ class AuthController extends Controller
     $em = $this->getDoctrine()->getManager();
     $em->persist($user);
     $em->flush();
-    $_SESSION['user'] = $json['email'];
+    $message = \Swift_Message::newInstance()
+      ->setSubject('Register symfony.llk-guild.ru')
+      ->setFrom('support@symfony.llk-guild.ru')
+      ->setTo($json['email'])
+      ->setBody(
+        $this->renderView(
+        // app/Resources/views/Emails/register.html.twig
+          'Emails/register.html.twig',
+          array('code' => $user->confirmCode)
+        ),
+        'text/html'
+      )
+    ;
+    $this->get('mailer')->send($message);
+    return $this->json(true);
+  }
+  /**
+   * @Route("/send_restore_code", name="send_restore_code")
+   * @Method({"POST"})
+   */
+  public function sendRestoreCodeAction(Request $request)
+  {
+    $json = json_decode($request->getContent(), true);
+    $user = new User();
+    $message = \Swift_Message::newInstance()
+      ->setSubject('Restore symfony.llk-guild.ru')
+      ->setFrom('support@symfony.llk-guild.ru')
+      ->setTo($json['email'])
+      ->setBody(
+        $this->renderView(
+          'Emails/restore.html.twig',
+          array('code' => $user->confirmCode)
+        ),
+        'text/html'
+      )
+    ;
+    $this->get('mailer')->send($message);
     return $this->json(true);
   }
 }
