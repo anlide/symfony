@@ -9,8 +9,8 @@ class OauthVk extends OauthAbstract {
     $redirectUrlBase = 'http://'.$domain.'/oauth/vk';
     $authTokenUrlBase = 'https://oauth.vk.com/access_token?client_id='.self::appId.'&client_secret='.self::secret.'&redirect_uri='.$redirectUrlBase.'&code=';
     $authTokenUrl = $authTokenUrlBase.$code;
+    var_dump($domain, $authTokenUrl); exit;
     $resp = file_get_contents($authTokenUrl);
-    var_dump($domain, $resp);
     $data = json_decode($resp, true);
     if (!isset($data['access_token'])) {
       throw new \Exception('access_token empty');
