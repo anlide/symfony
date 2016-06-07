@@ -62,6 +62,10 @@ class User
     return $randomString;
   }
 
+  public static function getByEmail($email) {
+    $obj = new self();
+  }
+
     public function register($email, $password) {
         $this->email = $email;
         $this->password = md5($password);

@@ -5,9 +5,9 @@
         <h1 class="text-center">Закрытый клуб культистов SYMFONY-поклонников</h1>
         <form class="form-signin" ng-show="auth.form == 1">
             <h2 class="form-signin-heading">Авторизация</h2>
-            <div ng-show="auth.alertType == 1" class="alert alert-danger" role="alert">Неверный пароль <button class="btn btn-xs btn-link" ng-click="auth.sendRestoreCode(); auth.form = 2">Восстановить</button>?</div>
-            <div ng-show="auth.alertType == 2" class="alert alert-danger" role="alert">Код регистрации не введён <button class="btn btn-xs btn-link" ng-click="auth.sendRestoreCode(); auth.form = 3">Ввести</button>?</div>
-            <div ng-show="auth.alertType == 3" class="alert alert-danger" role="alert">Пароля нет <button class="btn btn-xs btn-link" ng-click="auth.sendRestoreCode(); auth.form = 2">Установить</button>?</div>
+            <div ng-show="auth.alertType == 1" class="alert alert-danger" role="alert">Неверный пароль <button class="btn btn-xs btn-link" ng-click="auth.sendCode(); auth.switchForm(2)">Восстановить</button>?</div>
+            <div ng-show="auth.alertType == 2" class="alert alert-danger" role="alert">Код регистрации не введён <button class="btn btn-xs btn-link" ng-click="auth.sendCode(); auth.form = 3">Ввести</button>?</div>
+            <div ng-show="auth.alertType == 3" class="alert alert-danger" role="alert">Пароля нет <button class="btn btn-xs btn-link" ng-click="auth.sendCode(); auth.form = 2">Установить</button>?</div>
             <label for="inputEmail" class="sr-only">Email адрес</label>
             <input type="email" id="inputEmail" class="form-control" ng-model="auth.email" ng-change="auth.onChangeEmail()" placeholder="Email адрес" required autofocus>
             <label for="inputPassword" class="sr-only">Пароль</label>
@@ -23,17 +23,17 @@
         <form class="form-signin" ng-show="auth.form == 2">
             <h2 class="form-signin-heading">Восстановление</h2>
             <div ng-show="auth.showWarningInvalidRestore();" class="alert alert-danger" role="alert">Неверный код</div>
-            <label>Код восстановления отправлен на email "[[auth.email]]", <button class="btn btn-xs btn-link" ng-click="auth.sendRestoreCode();">отправить повторно</button></label>
+            <label>Код восстановления отправлен на email "[[auth.email]]", <button class="btn btn-xs btn-link" ng-click="auth.sendCode();">отправить повторно</button></label>
             <label for="inputCode" class="sr-only">Код</label>
-            <input type="text" id="inputCode" class="form-control" ng-model="auth.code" ng-change="auth.onChangeRestoreCode()" placeholder="Код" required>
+            <input type="text" id="inputCode" class="form-control" ng-model="auth.codeRestore" ng-change="auth.onChangeRestoreCode()" placeholder="Код" required>
             <button class="btn btn-lg btn-primary" type="submit" ng-click="auth.form = 1; auth.alertType = 0">Отмена</button>
         </form>
         <form class="form-signin" ng-show="auth.form == 3">
             <h2 class="form-signin-heading">Регистрация</h2>
             <div ng-show="auth.showWarningInvalidRegister();" class="alert alert-danger" role="alert">Неверный код</div>
-            <label>Код регистрации отправлен на email "[[auth.email]]", <button class="btn btn-xs btn-link" ng-click="auth.sendRestoreCode();">отправить повторно</button></label>
+            <label>Код регистрации отправлен на email "[[auth.email]]", <button class="btn btn-xs btn-link" ng-click="auth.sendCode();">отправить повторно</button></label>
             <label for="inputCode" class="sr-only">Код</label>
-            <input type="text" id="inputCode" class="form-control" ng-model="auth.code" ng-change="auth.onChangeRegisterCode()" placeholder="Код" required>
+            <input type="text" id="inputCode" class="form-control" ng-model="auth.codeRegister" ng-change="auth.onChangeRegisterCode()" placeholder="Код" required>
             <button class="btn btn-lg btn-primary" type="submit" ng-click="auth.form = 1; auth.alertType = 0">Отмена</button>
         </form>
     </div> <!-- /container -->

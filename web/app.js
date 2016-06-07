@@ -6,6 +6,8 @@ app.config(function($interpolateProvider) {
 app.controller('AuthController', [ '$http', function($http){
   this.email = '';
   this.password = '';
+  this.codeRestore = '';
+  this.codeRegister = '';
   /**
    * Текст кнопки, важно знать, что в конце контроллера дёргается метод "_updateLoginButton".
    * @type {string}
@@ -26,6 +28,18 @@ app.controller('AuthController', [ '$http', function($http){
    * @type {number}
    */
   this.alertType = 0;
+  /**
+   * 0 - Без уведомлений
+   * 1 - Неверный код
+   * @type {number}
+   */
+  this.alertRestoreType = 0;
+  /**
+   * 0 - Без уведомлений
+   * 1 - Неверный код
+   * @type {number}
+   */
+  this.alertRegisterType = 0;
   /**
    * 1 - Форма входа
    * 2 - Форма восстановления
@@ -93,11 +107,43 @@ app.controller('AuthController', [ '$http', function($http){
       });
     }
   };
+  this.switchForm = function(newForm) {
+    switch (newForm) {
+      case 1:
+        this.alertType = 0;
+        break;
+      case 2:
+        this.alertRestoreType = 0;
+        this.sendRestoreCode();
+        break;
+      case 3:
+        this.alertRegisterType = 0;
+        this.sendRegisterCode();
+        break;
+      default:
+        this.alertType = 0;
+        newForm = 1;
+    }
+    this.form = newForm;
+  };
   /**
-   * Посылаем серверу сигнал, что надо отправить код восстановления
+   * Посылаем серверу сигнал, что надо отправить код восстановления/регистрации
    */
   this.sendRestoreCode = function() {
     $http.post('/send_restore_code', { email: this.email });
+  };
+  this.sendRegisterCode = function() {
+    $http.post('/send_register_code', { email: this.email });
+  };
+  this.onChangeRestoreCode = function() {
+    if (this.codeRestore.length != 7) return;
+    $http.get('/restore-check=' + this.codeRestore).success(function(data){
+      if (data) {
+        window.location.replace("/");
+      } else {
+        self.alertRestoreType = 1;
+      }
+    });
   };
   this._updateLoginButton();
 } ]);

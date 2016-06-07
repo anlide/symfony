@@ -64,7 +64,6 @@ class AuthController extends Controller
       ->setTo($json['email'])
       ->setBody(
         $this->renderView(
-        // app/Resources/views/Emails/register.html.twig
           'Emails/register.html.twig',
           array('code' => $user->confirmCode)
         ),
@@ -81,14 +80,49 @@ class AuthController extends Controller
   public function sendRestoreCodeAction(Request $request)
   {
     $json = json_decode($request->getContent(), true);
-    $user = new User();
+    $email = $json['email'];
+    /**
+     * @var User $user
+     */
+    $user = $this->getDoctrine()
+      ->getRepository('AppBundle:User')
+      ->findOneBy(array('email' => $email));
     $message = \Swift_Message::newInstance()
       ->setSubject('Restore symfony.llk-guild.ru')
       ->setFrom('support@symfony.llk-guild.ru')
-      ->setTo($json['email'])
+      ->setTo($email)
       ->setBody(
         $this->renderView(
           'Emails/restore.html.twig',
+          array('code' => $user->confirmCode)
+        ),
+        'text/html'
+      )
+    ;
+    $this->get('mailer')->send($message);
+    return $this->json(true);
+  }
+  /**
+   * @Route("/send_register_code", name="send_register_code")
+   * @Method({"POST"})
+   */
+  public function sendRegisterCodeAction(Request $request)
+  {
+    $json = json_decode($request->getContent(), true);
+    $email = $json['email'];
+    /**
+     * @var User $user
+     */
+    $user = $this->getDoctrine()
+      ->getRepository('AppBundle:User')
+      ->findOneBy(array('email' => $email));
+    $message = \Swift_Message::newInstance()
+      ->setSubject('Register symfony.llk-guild.ru')
+      ->setFrom('support@symfony.llk-guild.ru')
+      ->setTo($email)
+      ->setBody(
+        $this->renderView(
+          'Emails/register.html.twig',
           array('code' => $user->confirmCode)
         ),
         'text/html'
