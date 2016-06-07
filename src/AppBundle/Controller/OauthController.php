@@ -66,7 +66,7 @@ class OauthController extends Controller
       $oauth->fetchUserData($code, $request->getHost());
     } catch (\Exception $e) {
       // По какой-то причине данные не может получить
-      return $this->redirect($request->getSchemeAndHttpHost());
+      return $this->json(array($e->getMessage(), $oauth));
     }
     /**
      * @var User $user
