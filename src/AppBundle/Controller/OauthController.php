@@ -22,8 +22,11 @@ class OauthController extends Controller
    */
   public function vkAction(Request $request)
   {
-    $code = $request->query->get('code');
-    var_dump($code, $request); exit;
+    // NOTE: что-то не так с моим nginx сервером (и QUERY_STRING приходит пустой, хотя конфиг явно правильный)
+    // Нет времени изучать каксделать правильно через "$code = $request->query->get('code');"
+    // Поэтому сделано немного порагульному получение $code
+    preg_match('~^/oauth/vk\?code\=(.*)$~', $request->getRequestUri(), $m);
+    $code = $m[1];
     try {
       $oauth = OauthAbstract::getInstance('Vk');
       $oauth->fetchUserData($code, $request->getHost());
@@ -53,7 +56,11 @@ class OauthController extends Controller
    */
   public function googleAction(Request $request)
   {
-    $code = $request->query->get('code');
+    // NOTE: что-то не так с моим nginx сервером (и QUERY_STRING приходит пустой, хотя конфиг явно правильный)
+    // Нет времени изучать каксделать правильно через "$code = $request->query->get('code');"
+    // Поэтому сделано немного порагульному получение $code
+    preg_match('~^/oauth/vk\?code\=(.*)$~', $request->getRequestUri(), $m);
+    $code = $m[1];
     try {
       $oauth = OauthAbstract::getInstance('Google');
       $oauth->fetchUserData($code, $request->getHost());
