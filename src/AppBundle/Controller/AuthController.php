@@ -84,7 +84,7 @@ class AuthController extends Controller
     $session = $request->getSession();
     $session->start();
     $session->remove('user');
-    return $this->json(true);
+    return $this->redirect($request->getSchemeAndHttpHost());
   }
   /**
    * @Route("/register", name="register")

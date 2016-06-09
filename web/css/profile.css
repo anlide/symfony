@@ -1,0 +1,14 @@
+form input[type=checkbox],
+form input[type=email],
+form input[type=text] {
+  position: relative;
+  display: inline-block;
+}
+form span {
+  width: 100px;
+  display: inline-block;
+  text-align: right;
+}
+form .buttons {
+  padding-top: 10px;
+}

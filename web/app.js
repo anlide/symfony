@@ -1,8 +1,31 @@
+$(function() {
+  // Не знаю как правильно сделать так, чтобы скрытые по умолчанию элементы не моргали при загрузке страницы.
+  // Поэтому использую старый топорный проверенный способ.
+  $('.form-signin').css('display', 'block');
+});
+
 var app = angular.module('symfonyCult', []);
 app.config(function($interpolateProvider) {
   $interpolateProvider.startSymbol('[[');
   $interpolateProvider.endSymbol(']]');
 });
+app.controller('TopMenuController', [ '$http', function($http){
+  /**
+   * Указанный пункт меню
+   * 1 - Сообщения
+   * 2 - Профиль
+   * @type {number}
+   */
+  this.index = 0;
+  var url = new URL(document.URL);
+  if (url.pathname == '/profile') {
+    this.index = 2;
+  } else if (url.pathname.substring(0, 6) == '/admin') {
+    this.index = 3;
+  } else {
+    this.index = 1;
+  }
+} ]);
 app.controller('AuthController', [ '$http', function($http){
   this.email = '';
   this.password = '';
@@ -175,14 +198,6 @@ app.controller('AuthController', [ '$http', function($http){
   this._updateLoginButton();
 } ]);
 app.controller('UserController', [ '$http', function($http){
-  this.onLogout = function() {
-    $http.get('/logout').success(function(data){
-      window.location.replace("/");
-    });
-  };
-  this.onProfile = function() {
-    console.log('onProfile');
-  };
 } ]);
 app.controller('OauthController', [ '$http', function($http){
   this.onRegister = function() {
@@ -190,4 +205,8 @@ app.controller('OauthController', [ '$http', function($http){
       window.location.replace("/");
     });
   };
+} ]);
+app.controller('ProfileController', [ '$http', function($http){
+} ]);
+app.controller('PostController', [ '$http', function($http){
 } ]);

@@ -1,0 +1,16 @@
+{% extends 'templates/user.html.twig' %}
+
+{% block body %}
+    <div class="jumbotron">
+        <h1>Админка</h1>
+        <p class="lead">Прежде чем что-то сделать в админке, помни о трёх вещах:</p>
+        <ol class="lead">
+            <li>Уважай частную жизнь других людей.</li>
+            <li>Думай прежде чем делать.</li>
+            <li>С большой силой приходит большая ответственность.</li>
+        </ol>
+        <a role="button" href="/admin/user" class="btn btn-lg btn-success">Пользователи</a>
+        <a role="button" href="/admin/post" class="btn btn-lg btn-success">Сообщения</a>
+    </div>
+
+{% endblock %}

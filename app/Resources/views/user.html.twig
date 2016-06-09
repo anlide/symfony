@@ -1,15 +1,27 @@
-{% extends 'base.html.twig' %}
+{% extends 'templates/user.html.twig' %}
 
 {% block body %}
-    <div class="container" ng-controller="UserController as user">
-        <h1 class="text-center">Закрытый клуб культистов SYMFONY-поклонников</h1>
-        <div class="form-signin">
-            <button class="btn btn-lg btn-block btn-primary" ng-click="user.onLogout()">Выход</button>
-            <button class="btn btn-lg btn-block btn-primary" ng-click="user.onProfile()">В профиль</button>
-        </div>
+    <div class="jumbotron">
+        <h1>Сообщения</h1>
+        <p class="lead">Тут вы можете оставить сообщения во славу SYMFONY, можете восхвалять сей движок как вашей душе угодно! Вы сможете увидеть ваши сообщения и сообщения, которыми с вами поделились другие.</p>
+        <a role="button" href="/new" class="btn btn-lg btn-success">Написать сообщение</a>
+    </div>
 
+    <div class="container" ng-controller="UserController as user">
         <div>
-            Тут будет список доступных для пользователя сообщений.
+            <div class="blog-post">
+                <h2>Blog post</h2>
+                <p class="blog-post-meta">January 1, 2014 by <a href="#">Mark</a></p>
+                <p>This blog post shows a few different types of content that's supported and styled with Bootstrap. Basic typography, images, and code are all supported.</p>
+                <hr>
+                <p>Ещё контент сообщения!</p>
+            </div>
         </div>
+        <nav>
+            <ul class="pager">
+                <li><a href="#">❰</a></li>
+                <li><a href="#">❱</a></li>
+            </ul>
+        </nav>
     </div> <!-- /container -->
 {% endblock %}
