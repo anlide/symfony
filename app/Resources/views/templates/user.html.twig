@@ -21,7 +21,7 @@
             <ul class="nav nav-pills pull-right" ng-controller="TopMenuController as menu">
                 <li role="presentation" ng-class="{ 'active': menu.index == 1 }"><a href="/">Сообщения</a></li>
                 <li role="presentation" ng-class="{ 'active': menu.index == 2 }"><a href="/profile">Профиль</a></li>
-                <li role="presentation" ng-class="{ 'active': menu.index == 3 }"><a href="/admin">Админка</a></li>
+                <li role="presentation" ng-class="{ 'active': menu.index == 3 }" class="hide-on-init" ng><a href="/admin">Админка</a></li>
                 <li role="presentation"><a href="/logout">Выход</a></li>
             </ul>
         </nav>

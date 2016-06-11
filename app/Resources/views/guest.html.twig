@@ -20,7 +20,7 @@
                 Вход через <img src="{{ asset('images/social/google.png') }}" alt="google" title="google">
             </button>
         </form>
-        <form class="form-signin" ng-show="auth.form == 2">
+        <form class="form-signin hide-on-init" ng-show="auth.form == 2">
             <h2 class="form-signin-heading">Восстановление</h2>
             <div ng-show="auth.showWarningInvalidRestore();" class="alert alert-danger" role="alert">Неверный код</div>
             <label>Код восстановления отправлен на email "[[auth.email]]", <button class="btn btn-xs btn-link" ng-click="auth.sendRestoreCode();">отправить повторно</button></label>
@@ -28,7 +28,7 @@
             <input type="text" id="inputCode" class="form-control" ng-model="auth.codeRestore" ng-change="auth.onChangeRestoreCode()" placeholder="Код" required>
             <button class="btn btn-lg btn-primary" type="submit" ng-click="auth.form = 1; auth.alertType = 0">Отмена</button>
         </form>
-        <form class="form-signin" ng-show="auth.form == 3">
+        <form class="form-signin hide-on-init" ng-show="auth.form == 3">
             <h2 class="form-signin-heading">Регистрация</h2>
             <div ng-show="auth.showWarningInvalidRegister();" class="alert alert-danger" role="alert">Неверный код</div>
             <label>Код регистрации отправлен на email "[[auth.email]]", <button class="btn btn-xs btn-link" ng-click="auth.sendRegisterCode();">отправить повторно</button></label>

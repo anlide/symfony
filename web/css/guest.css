@@ -38,6 +38,6 @@ body {
   border-top-right-radius: 0;
 }
 
-.form-signin {
+.hide-on-init {
   display: none;
 }
