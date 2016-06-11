@@ -220,6 +220,163 @@ app.controller('OauthController', [ '$http', function($http){
   };
 } ]);
 app.controller('ProfileController', [ '$http', function($http){
+  this.profileForm = null;
+  this.id = $('input#id').val();
+  this.email = $('input#email').val();
+  this.name = $('input#name').val();
+  this.vk = $('input#vk').val();
+  this.google = $('input#google').val();
+  this.role = $('input#role').val();
+  this.havePassword = $('input#have_password').val() == 1;
+  /**
+   * 0 - Без уведомлений
+   * 1 - Профайл успешно изменён
+   * 2 - Желаемый email уже зарегистрирован в системе, что с ним будем делать?
+   * 3 - Подтвердите ваш email
+   * 4 - Роль модератора получена
+   * 5 - Роль модератора отдана
+   * 6 - Пароль успешно изменён
+   * 7 - Пароль успешно задан
+   * 8 - Email подтверждён
+   * 9 - Email подтверждён, аккаунты соеденены
+   * 10- Действующий пароль указан неверно
+   * @type {number}
+   */
+  this.alertType = 0;
+  this.code = '';
+  var self = this;
+  setTimeout(function(){
+    // К вопросу, что не разобрался где у angular onInit, поэтому завёрнуто в setTimeout
+    self.dialog = $( "#dialog_change_password" ).dialog({
+      autoOpen: false,
+      modal: true,
+      resizable: false,
+      buttons: [
+        {
+          text: "Я передумал",
+          click: function() {
+            $( this ).dialog( "close" );
+          }
+        },
+        {
+          text: "Сменить",
+          click: function() {
+            self._setPassword();
+            $( this ).dialog( "close" );
+          }
+        }
+      ],
+      open: function( event, ui ) {
+        if (!self.havePassword) {
+          $( this ).dialog( { title: 'Установить пароль' } );
+          $('input#password').parent().hide();
+          $(this).parent().find('button[class!=ui-dialog-titlebar-close]:last').html('Установить');
+        } else {
+          $( this ).dialog( { title: 'Сменить пароль' } );
+          $('input#password').parent().show();
+          $(this).parent().find('button[class!=ui-dialog-titlebar-close]:last').html('Сменить');
+        }
+        $(this).parent().find('button[class!=ui-dialog-titlebar-close]:first').addClass('btn btn-default');
+        $(this).parent().find('button[class!=ui-dialog-titlebar-close]:last').addClass('btn btn-success');
+      }
+    });
+  }, 0);
+  this._setPassword = function() {
+    $http.put('/profile-set-password', { password: $('input#password').val(), password_new: $('input#password_new').val() }).success(function(data) {
+      if (data === false) {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+        return;
+      }
+      if (typeof data['done'] == 'undefined') {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+        return;
+      }
+      if (data['done']) {
+        if (self.havePassword) {
+          self.alertType = 6;
+        } else {
+          self.alertType = 7;
+          self.havePassword = true;
+        }
+      } else {
+        self.alertType = 10;
+      }
+    });
+  };
+  this.getRequestModeratorBtnTitle = function() {
+    if (this.role == 'user') {
+      return 'Запросить роль модератора';
+    } else {
+      return 'Отдать роль модератора';
+    }
+  };
+  this.onSubmit = function() {
+    this.alertType = 0;
+    if ($('input#email').hasClass('ng-invalid')) return;
+    var self = this;
+    $http.put('/profile', { email: this.email, name: this.name }).success(function(data){
+      if (data === false) {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+        return;
+      }
+      if (typeof data['email_exists'] != 'undefined') {
+        if (data['email_exists']) {
+          self.alertType = 2;
+        } else {
+          self.alertType = 3;
+        }
+      } else if (typeof data['name'] != 'undefined') {
+        self.alertType = 1;
+      } else {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+      }
+    });
+  };
+  this.onChangePassword = function() {
+    this.dialog.dialog('open');
+  };
+  this.onRequestModerator = function() {
+    var self = this;
+    $http.put('/profile-request-moderator').success(function(data){
+      if (data === false) {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+        return;
+      }
+      if (typeof data['got'] == 'undefined') {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+        return;
+      }
+      if (data['got']) {
+        self.alertType = 4;
+        self.role = 'moderator';
+      } else {
+        self.alertType = 5;
+        self.role = 'user';
+      }
+    });
+  };
+  this.onSocial = function(social) {
+
+  };
+  this.onConfirm = function() {
+    var self = this;
+    $http.put('/profile-confirm', { code: this.code }).success(function(data){
+      if (data === false) {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+        return;
+      }
+      if (typeof data['check'] == 'undefined') {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+        return;
+      }
+      if (data['check'] === false) return;
+      if (self.alertType == 2) {
+        self.alertType = 9;
+      } else {
+        self.alertType = 8;
+      }
+    });
+  };
 } ]);
 app.controller('PostController', [ '$http', function($http){
   this.mode = 1;
@@ -283,6 +440,7 @@ app.controller('PostController', [ '$http', function($http){
     $http.delete('/post=' + this.id).success(function(data){
       if (data !== false) {
         // Всё хорошо - редирект на главную страницу
+        // TODO: нарисовать что-то типа "успешно отредактировано"
         window.location.href = '/';
       } else {
         alert('Ошибка-нежданчик, перезайдите пожалуйста');

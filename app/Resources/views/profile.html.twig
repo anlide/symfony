@@ -3,35 +3,64 @@
 {% block body %}
     <link href="{{ asset('css/profile.css') }}" rel="stylesheet"/>
 
-    <div class="jumbotron">
-        <h1>Профиль</h1>
-        <p class="lead">Тут вы можете изменить отображаемое ваше имя, связать вашу учётную запись с социальными сетями и подать заявку на роль модератора.</p>
-    </div>
+    <div ng-controller="ProfileController as profile">
+        <div class="jumbotron">
+            <h1>Профиль</h1>
+            <p class="lead">Тут вы можете изменить отображаемое ваше имя, связать вашу учётную запись с социальными сетями и подать заявку на роль модератора.</p>
+        </div>
 
-    <form class="container" ng-controller="ProfileController as profile">
-        <div class="row">
+        <div ng-show="profile.alertType == 1" class="alert alert-success hide-on-init" role="alert"><strong>Ваш профайл изменён!</strong> Все ваши изменения тщательно сохранены.</div>
+        <div ng-show="profile.alertType == 2" class="alert alert-info hide-on-init" role="alert"><strong>Аккаунт с таким email уже есть, подтвердите, что это ваш email!</strong> На ваш email отправлен код подтверждения, введите его <input type="text" ng-model="profile.code" ng-change="profile.onConfirm()"/></div>
+        <div ng-show="profile.alertType == 3" class="alert alert-info hide-on-init" role="alert"><strong>Надо подтвердить, что это ваш email!</strong> На ваш email отправлен код подтверждения, введите его <input type="text" ng-model="profile.code" ng-change="profile.onConfirm()"/></div>
+        <div ng-show="profile.alertType == 4" class="alert alert-info hide-on-init" role="alert"><strong>Готово!</strong> Роль модератора получена!</div>
+        <div ng-show="profile.alertType == 5" class="alert alert-warning hide-on-init" role="alert"><strong>Как хотите!</strong> Роль модератора забрана!</div>
+        <div ng-show="profile.alertType == 6" class="alert alert-info hide-on-init" role="alert"><strong>Получилось!</strong> Пароль успешно изменён!</div>
+        <div ng-show="profile.alertType == 7" class="alert alert-info hide-on-init" role="alert"><strong>Получилось!</strong> Пароль успешно задан!</div>
+        <div ng-show="profile.alertType == 8" class="alert alert-success hide-on-init" role="alert"><strong>Email подтверждён!</strong> Данные сохранены.</div>
+        <div ng-show="profile.alertType == 9" class="alert alert-success hide-on-init" role="alert"><strong>Email подтверждён!</strong> Аккаунты соеденены.</div>
+        <div ng-show="profile.alertType ==10" class="alert alert-warning hide-on-init" role="alert"><strong>Ошибка!</strong> Действующий пароль указан неверно!</div>
+
+        <div id="dialog_change_password" title="Смена пароля" style="display: none;">
             <label>
-                <span>Email</span>
-                <input type="email">
+                Действующий пароль:
+                <input id="password" type="password">
+            </label>
+            <label>
+                Новый пароль:
+                <input id="password_new" type="password">
             </label>
         </div>
-        <div class="row">
-            <label>
-                <span>Имя</span>
-                <input type="text">
-            </label>
-        </div>
-        <div class="row">
-            <label>
-                <span>Соц сети</span>
-                <button class="btn btn-default">vk</button>
-                <button class="btn btn-default">google</button>
-            </label>
-        </div>
-        <div class="row buttons">
-            <input class="btn btn-success" type="submit" value="Сохранить изменения">
-            <button class="btn btn-default">Сменить пароль</button>
-            <button class="btn btn-default">Запросить роль модератора</button>
-        </div>
-    </form> <!-- /container -->
+
+        <form class="container" name="profileForm" ng-model="profileForm">
+            <input type="hidden" id="id" value="{{ user.id }}"/>
+            <input type="hidden" id="role" value="{{ user.role }}"/>
+            <input type="hidden" id="have_password" value="{{ (user.password != null?1:0) }}"/>
+            <div class="row">
+                <label>
+                    <span>Имя</span>
+                    <input type="text" id="name" ng-model="profile.name" value="{{ user.name }}">
+                </label>
+            </div>
+            <div class="row">
+                <label>
+                    <span>Email</span>
+                    <input type="email" id="email" ng-model="profile.email" value="{{ user.email }}">
+                </label>
+            </div>
+            <div class="row">
+                <label>
+                    <span>Соц сети</span>
+                    <input type="hidden" id="vk" value="{{ user.vk }}"/>
+                    <input type="hidden" id="google" value="{{ user.google }}"/>
+                    <button class="btn" ng-class="{ 'btn-default': profile.vk == '', 'btn-success': profile.vk != '' }" ng-click="profile.onSocial('vk')">vk</button>
+                    <button class="btn" ng-class="{ 'btn-default': profile.google == '', 'btn-success': profile.google != '' }" ng-click="profile.onSocial('google')">google</button>
+                </label>
+            </div>
+            <div class="row buttons">
+                <input class="btn btn-success" type="submit" value="Сохранить изменения" ng-click="profile.onSubmit()">
+                <button class="btn btn-default" ng-click="profile.onChangePassword()">Сменить пароль</button>
+                <button class="btn btn-default" ng-click="profile.onRequestModerator()">[[profile.getRequestModeratorBtnTitle()]]</button>
+            </div>
+        </form> <!-- /container -->
+    </div>
 {% endblock %}

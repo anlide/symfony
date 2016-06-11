@@ -12,49 +12,59 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class User
 {
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="id", type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     */
-    private $id;
+  /**
+   * @var int
+   *
+   * @ORM\Column(name="id", type="integer")
+   * @ORM\Id
+   * @ORM\GeneratedValue(strategy="AUTO")
+   */
+  public $id;
 
-    /**
-     * @ORM\Column(name="email", type="text")
-     */
-    public $email;
-    /**
-     * @ORM\Column(name="password", type="text")
-     */
-    public $password = null;
-    /**
-     * @ORM\Column(name="confirm_code", type="string", length=7)
-     */
-    public $confirmCode = null;
-    /**
-     * @ORM\Column(name="vk", type="text")
-     */
-    public $vk = null;
-    /**
-     * @ORM\Column(name="google", type="text")
-     */
-    public $google = null;
-    /**
-     * @ORM\Column(name="name", type="text")
-     */
-    public $name = null;
+  /**
+   * @ORM\Column(name="email", type="text")
+   */
+  public $email;
+  /**
+   * TODO: посыпать солью
+   * @ORM\Column(name="password", type="text")
+   */
+  public $password = null;
+  /**
+   * @ORM\Column(name="confirm_code", type="string", length=7)
+   */
+  public $confirmCode = null;
+  /**
+   * @ORM\Column(name="vk", type="text")
+   */
+  public $vk = null;
+  /**
+   * @ORM\Column(name="google", type="text")
+   */
+  public $google = null;
+  /**
+   * @ORM\Column(name="name", type="text")
+   */
+  public $name = null;
+  /**
+   * @ORM\Column(name="avatar", type="text")
+   */
+  public $avatar = null;
+  /**
+   * Даже проверять не буду - поддерживается ли ENUM
+   * @ORM\Column(name="role", type="text")
+   */
+  public $role = null;
 
-    /**
-     * Get id
-     *
-     * @return int
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
+  /**
+   * Get id
+   *
+   * @return int
+   */
+  public function getId()
+  {
+    return $this->id;
+  }
 
   public function generateRandomString($length = 7) {
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -66,11 +76,15 @@ class User
     return $randomString;
   }
 
-    public function register($email, $password) {
-        $this->email = $email;
-        $this->password = md5($password);
-        $this->confirmCode = $this->generateRandomString();
-        $this->name = $email;
-    }
+  public function register($email, $password) {
+    $this->email = $email;
+    $this->password = md5($password);
+    $this->confirmCode = $this->generateRandomString();
+    $this->name = $email;
+  }
+
+  public function checkPassword($password) {
+    return (md5($password) == $this->password);
+  }
 }
 
