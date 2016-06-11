@@ -18,72 +18,72 @@ use Symfony\Component\HttpFoundation\Request;
 class OauthController extends Controller
 {
   /**
-   * @Route("/oauth/vk", name="oauth_vk")
+   * @Route("/oauth/{method}", name="oauth")
    */
-  public function vkAction(Request $request)
+  public function oauthAction(Request $request, $method)
   {
     // NOTE: что-то не так с моим nginx сервером (и QUERY_STRING приходит пустой, хотя конфиг явно правильный)
     // Нет времени изучать каксделать правильно через "$code = $request->query->get('code');"
     // Поэтому сделано немного порагульному получение $code
-    preg_match('~^/oauth/vk\?code\=(.*)$~', $request->getRequestUri(), $m);
-    $code = $m[1];
+    if (!in_array($method, array('vk', 'google'))) {
+      return $this->json('invalid method: '.$method);
+    }
+    preg_match('~^/oauth/([^\?]+)\?code\=(.*)$~', $request->getRequestUri(), $m);
+    $code = $m[2];
     try {
-      $oauth = OauthAbstract::getInstance('Vk');
+      $oauth = OauthAbstract::getInstance(strtoupper(substr($method, 0, 1)).substr($method, 1));
       $oauth->fetchUserData($code, $request->getHost());
     } catch (\Exception $e) {
       // По какой-то причине данные не может получить
-      return $this->json(array($e->getMessage(), $oauth, $request->getRequestUri(), $code));
+      return $this->json(array($e->getMessage(), $oauth, $request->getRequestUri(), $code, $method));
     }
     /**
      * @var User $user
      */
     $user = $this->getDoctrine()
       ->getRepository('AppBundle:User')
-      ->findOneBy(array('vk' => $oauth->providerKey));
+      ->findOneBy(array($method => $oauth->providerKey));
     $session = $request->getSession();
     $session->start();
+    $userIdSession = $session->get('user');
+    // И тут начинается ветвление 4 case залогинен/нет, есть пользователь/нет
     if ($user === null) {
-      // Пользователя нет - значит надо предложить закончить регистрацию
-      $session->set('oauth', $oauth);
-      return $this->redirect($request->getSchemeAndHttpHost().'/oauth/register');
+      if ($userIdSession === null) {
+        // Пользователя нет и сессии нет - значит надо предложить закончить регистрацию
+        $session->set('oauth', $oauth);
+        return $this->redirect($request->getSchemeAndHttpHost().'/oauth/register');
+      } else {
+        // Пользователя нет но сессия есть - значит надо дополнить аккаунт и вернутся в профиль
+        /**
+         * @var User $userSession
+         */
+        $userSession = $this->getDoctrine()
+          ->getRepository('AppBundle:User')
+          ->findOneBy(array('id' => $userIdSession));
+        if ($userSession === null) return $this->json('Пользователя удалили в процессе регистрации'); // ололо ситуация
+        $userSession->$method = $oauth->providerKey;
+        $this->getDoctrine()->getManager()->flush();
+        return $this->redirect($request->getSchemeAndHttpHost().'/profile');
+      }
+    } else {
+      if ($userIdSession === null) {
+        // Пользователь есть и сессии нет - просто авторизуем пользователя и делаем редирект на главную страницу
+        $session->set('user', $user->getId());
+        return $this->redirect($request->getSchemeAndHttpHost());
+      } else {
+        // Пользователь есть и сессия есть - значит надо склеивать аккаунты и вернутся в профиль
+        /**
+         * @var User $userSession
+         */
+        $userSession = $this->getDoctrine()
+          ->getRepository('AppBundle:User')
+          ->findOneBy(array('id' => $userIdSession));
+        if ($userSession === null) return $this->json('Пользователя удалили в процессе регистрации'); // ололо ситуация
+        $userSession->mergeAccout($user, $this->getDoctrine());
+        $this->getDoctrine()->getManager()->flush();
+        return $this->redirect($request->getSchemeAndHttpHost().'/profile');
+      }
     }
-    // Пользователь есть - значит пишем его в сессию и обновляем страницу
-    $session->set('user', $user->getId());
-    return $this->redirect($request->getSchemeAndHttpHost());
-  }
-  /**
-   * @Route("/oauth/google", name="oauth_google")
-   */
-  public function googleAction(Request $request)
-  {
-    // NOTE: что-то не так с моим nginx сервером (и QUERY_STRING приходит пустой, хотя конфиг явно правильный)
-    // Нет времени изучать каксделать правильно через "$code = $request->query->get('code');"
-    // Поэтому сделано немного порагульному получение $code
-    preg_match('~^/oauth/google\?code\=(.*)$~', $request->getRequestUri(), $m);
-    $code = $m[1];
-    try {
-      $oauth = OauthAbstract::getInstance('Google');
-      $oauth->fetchUserData($code, $request->getHost());
-    } catch (\Exception $e) {
-      // По какой-то причине данные не может получить
-      return $this->json(array($e->getMessage(), $oauth, $request->getRequestUri(), $code));
-    }
-    /**
-     * @var User $user
-     */
-    $user = $this->getDoctrine()
-      ->getRepository('AppBundle:User')
-      ->findOneBy(array('google' => $oauth->providerKey));
-    $session = $request->getSession();
-    $session->start();
-    if ($user === null) {
-      // Пользователя нет - значит надо предложить закончить регистрацию
-      $session->set('oauth', $oauth);
-      return $this->redirect($request->getSchemeAndHttpHost().'/oauth/register');
-    }
-    // Пользователь есть - значит пишем его в сессию и обновляем страницу
-    $session->set('user', $user->getId());
-    return $this->redirect($request->getSchemeAndHttpHost());
   }
   /**
    * @Route("/oauth/register", name="oauth_register")

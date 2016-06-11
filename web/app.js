@@ -356,7 +356,15 @@ app.controller('ProfileController', [ '$http', function($http){
     });
   };
   this.onSocial = function(social) {
-
+    if (this[social] != '') return;
+    $http.get('/profile-social-get-url=' + social).success(function(data){
+      if (data === false) {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+        return;
+      }
+      window.location.href = data;
+      // TODO: вывести какое-то уведомление типа "всё прошло хорошо" или "что-то пошло не так"
+    });
   };
   this.onConfirm = function() {
     var self = this;

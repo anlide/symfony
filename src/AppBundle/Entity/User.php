@@ -2,6 +2,7 @@
 
 namespace AppBundle\Entity;
 
+use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -85,6 +86,26 @@ class User
 
   public function checkPassword($password) {
     return (md5($password) == $this->password);
+  }
+
+  public function mergeAccout(User $userOther, Registry $doctrine) {
+    if ($this->name == '') $this->name = $userOther->name;
+    if ($this->email == null) $this->email = $userOther->email;
+    if ($this->password == null) $this->password = $userOther->password;
+    if ($this->vk === null) $this->vk = $userOther->vk;
+    if ($this->google === null) $this->google = $userOther->google;
+    if ($this->avatar == '') $this->avatar = $userOther->avatar;
+    if (($this->role == 'user') && ($userOther->role != 'user')) $this->role = $userOther->role;
+    /**
+     * @var Post[] $posts
+     */
+    $posts = $doctrine
+      ->getRepository('AppBundle:Post')
+      ->findBy(array('author' => $userOther->getId()));
+    foreach ($posts as $post) {
+      $post->author = $this->id;
+    }
+    $doctrine->getManager()->remove($userOther);
   }
 }
 

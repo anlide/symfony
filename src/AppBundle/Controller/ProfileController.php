@@ -125,22 +125,8 @@ class ProfileController extends Controller
         ->getRepository('AppBundle:User')
         ->findOneBy(array('email' => $email));
       if ($userOther === null) return $this->json(false); // Нежданчик
-      if ($user->name == '') $user->name = $userOther->name;
-      if ($user->vk === null) $user->vk = $userOther->vk;
-      if ($user->google === null) $user->google = $userOther->google;
-      if ($user->avatar == '') $user->avatar = $userOther->avatar;
-      if (($user->role == 'user') && ($userOther->role != 'user')) $user->role = $userOther->role;
-      /**
-       * @var Post[] $posts
-       */
-      $posts = $this->getDoctrine()
-        ->getRepository('AppBundle:Post')
-        ->findBy(array('author' => $userOther->getId()));
-      foreach ($posts as $post) {
-        $post->author = $userId;
-      }
+      $user->mergeAccout($userOther, $this->getDoctrine());
       $user->email = $email;
-      $this->getDoctrine()->getManager()->remove($userOther);
       $this->getDoctrine()->getManager()->flush();
       return $this->json(array('check' => true));
     } else {
@@ -192,7 +178,6 @@ class ProfileController extends Controller
       ->findOneBy(array('id' => $userId));
     if ($user === null) return $this->json(false);
     $return = array();
-    $this->getDoctrine()->getManager()->flush();
     // Если нужен пароль - проверяем пароль
     $json = json_decode($request->getContent(), true);
     $return['done'] = true;
@@ -205,6 +190,38 @@ class ProfileController extends Controller
       $user->password = md5($json['password_new']);
     }
     $this->getDoctrine()->getManager()->flush();
+    return $this->json($return);
+  }
+  /**
+   * RESTful profile social get url for redirect on cliend side
+   * @Route("/profile-social-get-url={social}", name="profile_social_get_url")
+   * @Method({"GET"})
+   */
+  public function profileSocialGetUrlAction(Request $request, $social) {
+    $session = $request->getSession();
+    $session->start();
+    $userId = $session->get('user');
+    if ($userId === null) return $this->json(false);
+    /**
+     * @var User $user
+     */
+    $user = $this->getDoctrine()
+      ->getRepository('AppBundle:User')
+      ->findOneBy(array('id' => $userId));
+    if ($user === null) return $this->json(false);
+    $return = array();
+    // Если нужен пароль - проверяем пароль
+    switch ($social) {
+      case 'vk':
+        $return = 'https://oauth.vk.com/authorize?client_id=5493762&display=page&redirect_uri='.$request->getSchemeAndHttpHost().'/oauth/vk&scope=&response_type=code&v=5.52';
+        break;
+      case 'google':
+        $return = 'https://accounts.google.com/o/oauth2/auth?client_id=860345762051-fgkpvutgp2omhv0ebv2uo4e0t60u3a20.apps.googleusercontent.com&response_type=code&scope=openid&redirect_uri='.$request->getSchemeAndHttpHost().'/oauth/google';
+        break;
+      default:
+        $return = false;
+        break;
+    }
     return $this->json($return);
   }
 }
