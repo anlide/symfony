@@ -2,3 +2,9 @@ form label {
   display: block;
   margin-top: 10px;
 }
+form #title {
+  width: 400px;
+}
+form .buttons {
+  margin-top: 10px;
+}

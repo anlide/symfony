@@ -1,27 +1,57 @@
 {% extends 'templates/user.html.twig' %}
 
 {% block body %}
-    <div class="jumbotron">
-        <h1>Сообщения</h1>
-        <p class="lead">Тут вы можете оставить сообщения во славу SYMFONY, можете восхвалять сей движок как вашей душе угодно! Вы сможете увидеть ваши сообщения и сообщения, которыми с вами поделились другие.</p>
-        <a role="button" href="/new" class="btn btn-lg btn-success">Написать сообщение</a>
+    <link href="{{ asset('css/post.css') }}" rel="stylesheet"/>
+    <script src="{{ asset('ckeditor/ckeditor.js') }}"></script>
+
+    <div ng-controller="PostController as post">
+        <div class="jumbotron" ng-show="post.mode == 1">
+            <h1>Сообщения</h1>
+            <p class="lead">Тут вы можете оставить сообщения во славу SYMFONY, можете восхвалять сей движок как вашей душе угодно! Вы сможете увидеть ваши сообщения и сообщения, которыми с вами поделились другие.</p>
+            <button class="btn btn-lg btn-success" ng-click="post.onNew()">Написать сообщение</button>
+        </div>
+
+        <div ng-show="post.alertType == 1" class="alert alert-success hide-on-init" role="alert"><strong>Symfony восхвалён!</strong> Ваше сообщение успешно добавлено.</div>
+
+        <div class="container" ng-show="post.mode == 1">
+            <article ng-repeat="message in post.posts | orderObjectBy:'time':true">
+                <h2>[[message.title]]</h2>
+                <div>[[message.time | date:'yyyy-MM-dd HH:mm:ss']]</div>
+                <!-- Хотел использовать <time datetime="[[message.time]]"> но времени нет исследовать как это сделать правильно -->
+                <div ng-bind-html="message.text | rawHtml"></div>
+            </article>
+            <nav style="display: none;">
+                <!-- TODO: implement this -->
+                <ul class="pager">
+                    <li><a href="#">❰</a></li>
+                    <li><a href="#">❱</a></li>
+                </ul>
+            </nav>
+        </div> <!-- /container -->
+
+        <div class="jumbotron hide-on-init" ng-show="post.mode == 2">
+            <h1>Написать новое сообщение</h1>
+            <p class="lead">Восхвалите же SYMFONY!</p>
+            <button class="btn btn-lg btn-default" ng-click="post.onNewCancel()">Я передумал</button>
+        </div>
+
+        <form class="container hide-on-init" ng-show="post.mode == 2">
+            <div class="row">
+                <label for="title">
+                    Заголовок:
+                </label>
+                <input type="text" id="title" ng-model="post.title" required>
+            </div>
+            <div class="row">
+                <label for="message">
+                    Тело сообщения:
+                </label>
+                <textarea ck-editor id="message" ng-model="post.content">[[post.content]]</textarea>
+            </div>
+            <div class="row buttons">
+                <input class="btn btn-success" type="submit" value="Восхвалить" ng-click="post.onNewSubmit()">
+            </div>
+        </form> <!-- /container -->
     </div>
 
-    <div class="container" ng-controller="UserController as user">
-        <div>
-            <div class="blog-post">
-                <h2>Blog post</h2>
-                <p class="blog-post-meta">January 1, 2014 by <a href="#">Mark</a></p>
-                <p>This blog post shows a few different types of content that's supported and styled with Bootstrap. Basic typography, images, and code are all supported.</p>
-                <hr>
-                <p>Ещё контент сообщения!</p>
-            </div>
-        </div>
-        <nav>
-            <ul class="pager">
-                <li><a href="#">❰</a></li>
-                <li><a href="#">❱</a></li>
-            </ul>
-        </nav>
-    </div> <!-- /container -->
 {% endblock %}

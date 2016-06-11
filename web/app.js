@@ -2,7 +2,19 @@ $(function() {
   // Не знаю как правильно сделать так, чтобы скрытые по умолчанию элементы не моргали при загрузке страницы.
   // Поэтому использую старый топорный проверенный способ.
   $('.form-signin').css('display', 'block');
+  $('.hide-on-init').css('display', 'block');
 });
+
+// Я и потратил и так кучу времени на конвертацию времени туда-сюда
+// Поэтому использую может и не очень красивое, но рабочее решение этого вопроса
+function twoDigits(d) {
+  if(0 <= d && d < 10) return "0" + d.toString();
+  if(-10 < d && d < 0) return "-0" + (-1*d).toString();
+  return d.toString();
+}
+Date.prototype.toMysqlFormat = function() {
+  return this.getUTCFullYear() + "-" + twoDigits(1 + this.getUTCMonth()) + "-" + twoDigits(this.getUTCDate()) + " " + twoDigits(this.getUTCHours()) + ":" + twoDigits(this.getUTCMinutes()) + ":" + twoDigits(this.getUTCSeconds());
+};
 
 var app = angular.module('symfonyCult', []);
 app.config(function($interpolateProvider) {
@@ -197,8 +209,6 @@ app.controller('AuthController', [ '$http', function($http){
   };
   this._updateLoginButton();
 } ]);
-app.controller('UserController', [ '$http', function($http){
-} ]);
 app.controller('OauthController', [ '$http', function($http){
   this.onRegister = function() {
     $http.get('/oauth/register-finish').success(function(data){
@@ -209,4 +219,112 @@ app.controller('OauthController', [ '$http', function($http){
 app.controller('ProfileController', [ '$http', function($http){
 } ]);
 app.controller('PostController', [ '$http', function($http){
+  this.mode = 1;
+  this.title = '';
+  this.content = '';
+  /**
+   * 0 - Без уведомлений
+   * 1 - Сообщение успешно добавлено
+   * @type {number}
+   */
+  this.alertType = 0;
+  this.posts = [];
+  this.onNew = function() {
+    this.mode = 2;
+    this.alertType = 0;
+  };
+  this.onNewCancel = function() {
+    this.mode = 1;
+  };
+  this.onNewSubmit = function() {
+    // Тут мы должны проверить только title - не пустой ли он (дублирование заголовков проверять не будем)
+    // Если есть ошибка - вывести её.
+    // Если нет ошибки - отправить серверу, и если он примет - добавить в список сообщений это сообщение
+    // Отправка серверу выполняется в 2 шага - сначала все inline картинки отправляются, потом тело сообщения
+    // Внешние картинки закачивать себе не будем.
+    /**
+     * Важно знать, что в конце контроллера дёргается метод "_updatePosts".
+     */
+    if (this.title == '') return;
+    var self = this;
+    $http.post('/post', { title: this.title, content: this.content }).success(function(data){
+      if (data) {
+        self.mode = 1;
+        self.alertType = 1;
+        var currentdate = new Date();
+        self.posts.push({
+          title: self.title,
+          text: self.content,
+          time: currentdate.toMysqlFormat(),
+          author: 0
+        });
+        // TODO: получать time и author из ответа сервера
+      } else {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+      }
+    });
+  };
+  this._updatePosts = function() {
+    var self = this;
+    $http.get('/posts').success(function(data){
+      if (data !== false) {
+        self.posts = [];
+        for (var index in data) {
+          var post = data[index];
+          post.time *= 1000;
+          self.posts.push(post);
+        }
+      } else {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+      }
+    });
+  };
+
+  this._updatePosts();
 } ]);
+app.filter('orderObjectBy', function() {
+  return function (items, field, reverse) {
+    var filtered = [];
+    angular.forEach(items, function(item) {
+      filtered.push(item);
+    });
+    filtered.sort(function (a, b) {
+      return (a[field] > b[field] ? 1 : -1);
+    });
+    if(reverse) filtered.reverse();
+    return filtered;
+  }
+});
+app.directive('ckEditor', function() {
+  return {
+    require: '?ngModel',
+    link: function(scope, elm, attr, ngModel) {
+      var ck = CKEDITOR.replace(elm[0], { width: 800 });
+
+      if (!ngModel) return;
+
+      ck.on('instanceReady', function() {
+        ck.setData(ngModel.$viewValue);
+      });
+
+      function updateModel() {
+        scope.$apply(function() {
+          ngModel.$setViewValue(ck.getData());
+        });
+      }
+
+      ck.on('change', updateModel);
+      ck.on('key', updateModel);
+      ck.on('dataReady', updateModel);
+
+      ngModel.$render = function(value) {
+        ck.setData(ngModel.$viewValue);
+      };
+    }
+  };
+});
+app.filter('rawHtml', ['$sce', function($sce){
+  return function(val) {
+    return $sce.trustAsHtml(val);
+  };
+}]);
