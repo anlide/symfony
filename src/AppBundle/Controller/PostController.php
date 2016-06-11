@@ -60,7 +60,7 @@ class PostController extends Controller
     $em = $this->getDoctrine()->getManager();
     $em->persist($post);
     $em->flush();
-    return $this->json(true);
+    return $this->json($post);
   }
   /**
    * RESTful view
@@ -68,8 +68,24 @@ class PostController extends Controller
    * @Method({"GET"})
    */
   public function viewAction(Request $request, $id) {
-    // TODO: implement this
-    return $this->json(false);
+    $session = $request->getSession();
+    $session->start();
+    $userId = $session->get('user');
+    /**
+     * @var User $user
+     */
+    $user = $this->getDoctrine()
+      ->getRepository('AppBundle:User')
+      ->findOneBy(array('id' => $userId));
+    if ($user === null) return $this->redirect('/');
+    /**
+     * @var Post $post
+     */
+    $post = $this->getDoctrine()
+      ->getRepository('AppBundle:Post')
+      ->findOneBy(array('id' => $id));
+    if ($post === null) return $this->redirect('/');
+    return $this->render('post.html.twig', array('post' => $post, 'test' => 123));
   }
   /**
    * RESTful update
@@ -77,8 +93,31 @@ class PostController extends Controller
    * @Method({"PUT"})
    */
   public function updateAction(Request $request, $id) {
-    // TODO: implement this
-    return $this->json(false);
+    // TODO: удалять присоединённые неиспользуемые теперь картинки
+    $session = $request->getSession();
+    $session->start();
+    $userId = $session->get('user');
+    if ($userId === null) return $this->json(false);
+    /**
+     * @var User $user
+     */
+    $user = $this->getDoctrine()
+      ->getRepository('AppBundle:User')
+      ->findOneBy(array('id' => $userId));
+    if ($user === null) return $this->json(false);
+    $json = json_decode($request->getContent(), true);
+    /**
+     * @var Post $post
+     */
+    $post = $this->getDoctrine()
+      ->getRepository('AppBundle:Post')
+      ->findOneBy(array('id' => $id));
+    if ($post === null) return $this->json(false);
+    $post->title = $json['title'];
+    $post->text = $json['content'];
+    $post->time = time();
+    $this->getDoctrine()->getManager()->flush();
+    return $this->json(true);
   }
   /**
    * RESTful delete
@@ -87,6 +126,29 @@ class PostController extends Controller
    */
   public function deleteAction(Request $request, $id) {
     // TODO: implement this
-    return $this->json(false);
+    // TODO: удалять присоединённые картинки
+    $session = $request->getSession();
+    $session->start();
+    $userId = $session->get('user');
+    if ($userId === null) return $this->json(false);
+    /**
+     * @var User $user
+     */
+    $user = $this->getDoctrine()
+      ->getRepository('AppBundle:User')
+      ->findOneBy(array('id' => $userId));
+    if ($user === null) return $this->json(false);
+    $json = json_decode($request->getContent(), true);
+    /**
+     * @var Post $post
+     */
+    $post = $this->getDoctrine()
+      ->getRepository('AppBundle:Post')
+      ->findOneBy(array('id' => $id));
+    if ($post === null) return $this->json(false);
+    $em = $this->getDoctrine()->getManager();
+    $em->remove($post);
+    $em->flush();
+    return $this->json(true);
   }
 }

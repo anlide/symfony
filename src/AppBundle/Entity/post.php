@@ -19,7 +19,7 @@ class Post
    * @ORM\Id
    * @ORM\GeneratedValue(strategy="AUTO")
    */
-  private $id;
+  public $id;
 
   /**
    * @ORM\Column(name="author", type="integer")

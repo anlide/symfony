@@ -13,9 +13,9 @@
 
         <div ng-show="post.alertType == 1" class="alert alert-success hide-on-init" role="alert"><strong>Symfony восхвалён!</strong> Ваше сообщение успешно добавлено.</div>
 
-        <div class="container" ng-show="post.mode == 1">
+        <div class="container hide-on-init" ng-show="post.mode == 1" ng-init="post.updatePosts()">
             <article ng-repeat="message in post.posts | orderObjectBy:'time':true">
-                <h2>[[message.title]]</h2>
+                <h2><a href="/post=[[message.id]]">[[message.title]]</a></h2>
                 <div>[[message.time | date:'yyyy-MM-dd HH:mm:ss']]</div>
                 <!-- Хотел использовать <time datetime="[[message.time]]"> но времени нет исследовать как это сделать правильно -->
                 <div ng-bind-html="message.text | rawHtml"></div>

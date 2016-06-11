@@ -223,8 +223,9 @@ app.controller('ProfileController', [ '$http', function($http){
 } ]);
 app.controller('PostController', [ '$http', function($http){
   this.mode = 1;
-  this.title = '';
-  this.content = '';
+  this.id = $('input#id').val();
+  this.title = $('input#title').val();
+  this.content = $('input#message').val();
   /**
    * 0 - Без уведомлений
    * 1 - Сообщение успешно добавлено
@@ -251,23 +252,44 @@ app.controller('PostController', [ '$http', function($http){
     if (this.title == '') return;
     var self = this;
     $http.post('/post', { title: this.title, content: this.content }).success(function(data){
-      if (data) {
+      if (data !== false) {
         self.mode = 1;
         self.alertType = 1;
-        var currentdate = new Date();
-        self.posts.push({
-          title: self.title,
-          text: self.content,
-          time: currentdate.toMysqlFormat(),
-          author: 0
-        });
-        // TODO: получать time и author из ответа сервера
+        data.time *= 1000;
+        self.posts.push(data);
       } else {
         alert('Ошибка-нежданчик, перезайдите пожалуйста');
       }
     });
   };
-  this._updatePosts = function() {
+  this.onEditSubmit = function() {
+    // Примерно такая же логика как и onNewSubmit, только обновляем данные
+    // TODO: отправить inline картинки
+    if (this.title == '') return;
+    var self = this;
+    $http.put('/post=' + this.id, { title: this.title, content: this.content }).success(function(data){
+      if (data !== false) {
+        // Всё хорошо - редирект на главную страницу
+        window.location.href = '/';
+      } else {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+      }
+    });
+  };
+  this.onDeleteSubmit = function() {
+    // Примерно такая же логика как и onNewSubmit, только обновляем данные
+    if (this.title == '') return;
+    var self = this;
+    $http.delete('/post=' + this.id).success(function(data){
+      if (data !== false) {
+        // Всё хорошо - редирект на главную страницу
+        window.location.href = '/';
+      } else {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+      }
+    });
+  };
+  this.updatePosts = function() {
     var self = this;
     $http.get('/posts').success(function(data){
       if (data !== false) {
@@ -282,8 +304,6 @@ app.controller('PostController', [ '$http', function($http){
       }
     });
   };
-
-  this._updatePosts();
 } ]);
 app.filter('orderObjectBy', function() {
   return function (items, field, reverse) {
