@@ -43,7 +43,7 @@ class OauthVk extends OauthAbstract {
     }
     if (isset($userInfo['response'][0]['photo_big'])) {
       $this->userpic = $userInfo['response'][0]['photo_big'];
-      if (substr($this->userpic, 0, 5) != 'https') $this->userpic = null; // TODO: Закачивать картинку себе и использовать её с локального сайта
+      // TODO: Закачивать картинку себе и использовать её с локального сайта
     }
     $this->sex = ($userInfo['response'][0]['sex'] == 2);
   }

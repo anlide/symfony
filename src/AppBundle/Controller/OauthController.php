@@ -16,6 +16,13 @@ use Symfony\Component\HttpFoundation\Request;
 class OauthController extends Controller
 {
   /**
+   * Уж извиняйте, что пересикается с "/oauth/register" и "/oauth/register-finish"
+   * Сами ссылки callback должны быть именно такими, я уже проводил исследование на много часов
+   * Подбирал как сделать oauth для многих соц сетей и в частности стояла задача подобрать единообразный callback url (не считая рагульного twitter, который использует протокол 1.1 , когда все остальные перешли на 2.0)
+   * Так вот ссылки должны быть без query params.
+   *
+   * Ну и переделывать "/oauth/register" и "/oauth/register-finish" можно было бы, но из-за очень жостких сроков написал пояснение и поставил маркер TODO
+   *
    * @Route("/oauth/{method}", name="oauth")
    */
   public function oauthAction(Request $request, $method)
@@ -63,12 +70,18 @@ class OauthController extends Controller
           ->findOneBy(array('id' => $userIdSession));
         if ($userSession === null) return $this->json('Пользователя удалили в процессе регистрации'); // ололо ситуация
         $userSession->$method = $oauth->providerKey;
+        if ($userSession->avatar === null) $userSession->avatar = $oauth->userpic; // Подтянем картинку, если у нас её ещё нет
         $this->getDoctrine()->getManager()->flush();
         return $this->redirect($request->getSchemeAndHttpHost().'/profile');
       }
     } else {
       if ($userIdSession === null) {
         // Пользователь есть и сессии нет - просто авторизуем пользователя и делаем редирект на главную страницу
+        if (($user->avatar === null) && ($oauth->userpic !== null)) {
+          // Подтянем картинку, если у нас её ещё нет
+          $user->avatar = $oauth->userpic;
+          $this->getDoctrine()->getManager()->flush();
+        }
         $session->set('user', $user->getId());
         return $this->redirect($request->getSchemeAndHttpHost());
       } else {
@@ -81,6 +94,7 @@ class OauthController extends Controller
           ->findOneBy(array('id' => $userIdSession));
         if ($userSession === null) return $this->json('Пользователя удалили в процессе регистрации'); // ололо ситуация
         $userSession->mergeAccout($user, $this->getDoctrine());
+        if ($userSession->avatar === null) $userSession->avatar = $oauth->userpic; // Подтянем картинку, если у нас её ещё нет
         $this->getDoctrine()->getManager()->flush();
         return $this->redirect($request->getSchemeAndHttpHost().'/profile');
       }
@@ -125,6 +139,7 @@ class OauthController extends Controller
         $user->google = $oauth->providerKey;
         break;
     }
+    $user->avatar = $oauth->userpic;
     $em = $this->getDoctrine()->getManager();
     $em->persist($user);
     $em->flush();

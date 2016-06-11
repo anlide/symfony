@@ -219,8 +219,9 @@ app.controller('OauthController', [ '$http', function($http){
     });
   };
 } ]);
-app.controller('ProfileController', [ '$http', function($http){
+app.controller('ProfileController', [ '$http', '$scope', function($http, $scope){
   this.profileForm = null;
+  this.inputFile = null;
   this.id = $('input#id').val();
   this.email = $('input#email').val();
   this.name = $('input#name').val();
@@ -228,6 +229,7 @@ app.controller('ProfileController', [ '$http', function($http){
   this.google = $('input#google').val();
   this.role = $('input#role').val();
   this.havePassword = $('input#have_password').val() == 1;
+  this.avatar = $('input#avatar').val();
   /**
    * 0 - Без уведомлений
    * 1 - Профайл успешно изменён
@@ -240,6 +242,8 @@ app.controller('ProfileController', [ '$http', function($http){
    * 8 - Email подтверждён
    * 9 - Email подтверждён, аккаунты соеденены
    * 10- Действующий пароль указан неверно
+   * 11- Аватар удалён
+   * 12- Аватар обновлён
    * @type {number}
    */
   this.alertType = 0;
@@ -314,7 +318,10 @@ app.controller('ProfileController', [ '$http', function($http){
     this.alertType = 0;
     if ($('input#email').hasClass('ng-invalid')) return;
     var self = this;
-    $http.put('/profile', { email: this.email, name: this.name }).success(function(data){
+    var file = $scope.inputFile;
+    var myHeaders = {};
+    if (typeof file != 'undefined') myHeaders = { headers: { 'Content-Type' : file.type } };
+    $http.put('/profile?email=' + this.email + '&name=' + this.name, file, myHeaders).success(function(data){
       if (data === false) {
         alert('Ошибка-нежданчик, перезайдите пожалуйста');
         return;
@@ -329,6 +336,12 @@ app.controller('ProfileController', [ '$http', function($http){
         self.alertType = 1;
       } else {
         alert('Ошибка-нежданчик, перезайдите пожалуйста');
+      }
+      if (typeof data['avatar'] != 'undefined') {
+        self.avatar = data['avatar'];
+        var image = $("#image");
+        image.wrap('<form>').parent('form').trigger('reset');
+        image.unwrap();
       }
     });
   };
@@ -383,6 +396,17 @@ app.controller('ProfileController', [ '$http', function($http){
       } else {
         self.alertType = 8;
       }
+    });
+  };
+  this.onAvatarRemove = function() {
+    var self = this;
+    $http.delete('/profile-avatar-remove').success(function(data){
+      if (data !== true) {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+        return;
+      }
+      self.alertType = 11;
+      self.avatar = '';
     });
   };
 } ]);
@@ -517,3 +541,19 @@ app.filter('rawHtml', ['$sce', function($sce){
     return $sce.trustAsHtml(val);
   };
 }]);
+app.directive('file', function() {
+  return {
+    restrict: 'E',
+    template: '<input type="file" />',
+    replace: true,
+    require: 'ngModel',
+    link: function(scope, element, attr, ctrl) {
+      var listener = function() {
+        scope.$apply(function() {
+          attr.multiple ? ctrl.$setViewValue(element[0].files) : ctrl.$setViewValue(element[0].files[0]);
+        });
+      }
+      element.bind('change', listener);
+    }
+  }
+});

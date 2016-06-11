@@ -48,8 +48,14 @@ class ProfileController extends Controller
       ->getRepository('AppBundle:User')
       ->findOneBy(array('id' => $userId));
     if ($user === null) return $this->json(false);
-    $json = json_decode($request->getContent(), true);
-    $email = $json['email'];
+    $url = parse_url($request->getRequestUri());
+    $parts = explode('&', $url['query']);
+    $params = array();
+    foreach ($parts as $part) {
+      list($key, $value) = explode('=', $part);
+      $params[$key] = urldecode($value);
+    }
+    $email = $params['email'];
     if ($user->email != $email) {
       if ($email != '') {
         // Возможно такой email уже есть в системе, тогда надо пользователя спросить - слить данные с того аккаунта в этот или нет?
@@ -86,7 +92,41 @@ class ProfileController extends Controller
         $user->confirmCode = null;
       }
     }
-    $user->name = $json['name'];
+    $content = $request->getContent();
+    if (strlen($content) != 0) {
+      $mime = $request->headers->get('content-type');
+      $ext = null;
+      switch ($mime) {
+        case 'image/jpg':
+        case 'image/jpeg':
+        case 'image/pjpeg':
+          $ext = 'jpg';
+          break;
+        case 'image/png':
+          $ext = 'png';
+          break;
+      }
+      if ($ext !== null) {
+        $filebase = $this->get('kernel')->getRootDir().'/../web/avatars/'.$userId;
+        file_put_contents($filebase.'.original.'.$ext, $content); // Можно и не хранить оригиналы - по вкусу
+        // Создание тумбы
+        $src_img = null;
+        if ($ext == 'jpg') $src_img = imagecreatefromjpeg($filebase.'.original.'.$ext);
+        if ($ext == 'png') $src_img = imagecreatefrompng($filebase.'.original.'.$ext);
+        $dst_img = ImageCreateTrueColor(100, 100);
+        // Попробуем отрезать нужный кусок, квадратный
+        $width = imageSX($src_img);
+        $height = imageSY($src_img);
+        $size = min($width, $height);
+        imagecopyresampled($dst_img, $src_img, 0, 0, ($width - $size)/2, ($height - $size)/2, 100, 100, $size, $size);
+        $hash = substr(md5($userId.time()), 0, 5);
+        if ($ext == 'jpg') imagejpeg($dst_img, $filebase.'.'.$hash.'.thumbnail.'.$ext);
+        if ($ext == 'png') imagepng($dst_img, $filebase.'.'.$hash.'.thumbnail.'.$ext);
+        $user->avatar = $request->getSchemeAndHttpHost().'/avatars/'.$userId.'.'.$hash.'.thumbnail.'.$ext;
+        $return['avatar'] = $user->avatar;
+      }
+    }
+    $user->name = $params['name'];
     $this->getDoctrine()->getManager()->flush();
     $return['name'] = true;
     return $this->json($return);
@@ -124,8 +164,12 @@ class ProfileController extends Controller
       $userOther = $this->getDoctrine()
         ->getRepository('AppBundle:User')
         ->findOneBy(array('email' => $email));
-      if ($userOther === null) return $this->json(false); // Нежданчик
-      $user->mergeAccout($userOther, $this->getDoctrine());
+      if ($userOther !== null) {
+        // Такой email есть - мёрджим аккаунты
+        $user->mergeAccout($userOther, $this->getDoctrine());
+      } else {
+        // Такого email нет - просто пишем его себе
+      }
       $user->email = $email;
       $this->getDoctrine()->getManager()->flush();
       return $this->json(array('check' => true));
@@ -209,7 +253,6 @@ class ProfileController extends Controller
       ->getRepository('AppBundle:User')
       ->findOneBy(array('id' => $userId));
     if ($user === null) return $this->json(false);
-    $return = array();
     // Если нужен пароль - проверяем пароль
     switch ($social) {
       case 'vk':
@@ -223,5 +266,26 @@ class ProfileController extends Controller
         break;
     }
     return $this->json($return);
+  }
+  /**
+   * RESTful profile avatar remove
+   * @Route("/profile-avatar-remove", name="profile_avatar_remove")
+   * @Method({"DELETE"})
+   */
+  public function profileAvatarRemoveAction(Request $request) {
+    $session = $request->getSession();
+    $session->start();
+    $userId = $session->get('user');
+    if ($userId === null) return $this->json(false);
+    /**
+     * @var User $user
+     */
+    $user = $this->getDoctrine()
+      ->getRepository('AppBundle:User')
+      ->findOneBy(array('id' => $userId));
+    if ($user === null) return $this->json(false);
+    $user->avatar = null;
+    $this->getDoctrine()->getManager()->flush();
+    return $this->json(true);
   }
 }

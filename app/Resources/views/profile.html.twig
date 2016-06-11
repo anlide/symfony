@@ -19,6 +19,8 @@
         <div ng-show="profile.alertType == 8" class="alert alert-success hide-on-init" role="alert"><strong>Email подтверждён!</strong> Данные сохранены.</div>
         <div ng-show="profile.alertType == 9" class="alert alert-success hide-on-init" role="alert"><strong>Email подтверждён!</strong> Аккаунты соеденены.</div>
         <div ng-show="profile.alertType ==10" class="alert alert-warning hide-on-init" role="alert"><strong>Ошибка!</strong> Действующий пароль указан неверно!</div>
+        <div ng-show="profile.alertType ==11" class="alert alert-warning hide-on-init" role="alert"><strong>Получилось!</strong> Аватар удалён!</div>
+        <div ng-show="profile.alertType ==12" class="alert alert-info hide-on-init" role="alert"><strong>Получилось!</strong> Аватар обновлён!</div>
 
         <div id="dialog_change_password" title="Смена пароля" style="display: none;">
             <label>
@@ -35,6 +37,7 @@
             <input type="hidden" id="id" value="{{ user.id }}"/>
             <input type="hidden" id="role" value="{{ user.role }}"/>
             <input type="hidden" id="have_password" value="{{ (user.password != null?1:0) }}"/>
+            <input type="hidden" id="avatar" value="{{ user.avatar }}"/>
             <div class="row">
                 <label>
                     <span>Имя</span>
@@ -48,13 +51,26 @@
                 </label>
             </div>
             <div class="row">
+                <label><span>Соц сети</span></label>
+                <input type="hidden" id="vk" value="{{ user.vk }}"/>
+                <input type="hidden" id="google" value="{{ user.google }}"/>
+                <button class="btn" ng-class="{ 'btn-default': profile.vk == '', 'btn-info': profile.vk != '' }" ng-click="profile.onSocial('vk')">vk</button>
+                <button class="btn" ng-class="{ 'btn-default': profile.google == '', 'btn-info': profile.google != '' }" ng-click="profile.onSocial('google')">google</button>
+            </div>
+            <div class="row">
                 <label>
-                    <span>Соц сети</span>
-                    <input type="hidden" id="vk" value="{{ user.vk }}"/>
-                    <input type="hidden" id="google" value="{{ user.google }}"/>
-                    <button class="btn" ng-class="{ 'btn-default': profile.vk == '', 'btn-success': profile.vk != '' }" ng-click="profile.onSocial('vk')">vk</button>
-                    <button class="btn" ng-class="{ 'btn-default': profile.google == '', 'btn-success': profile.google != '' }" ng-click="profile.onSocial('google')">google</button>
+                    <span>Аватар</span>
+                    <span class="avatar_details">
+                        <file name="image" id="image" ng-model="inputFile" accept="image/*">
+                    </span>
                 </label>
+            </div>
+            <div class="row">
+                <span></span>
+                <span class="avatar_details" ng-hide="profile.avatar == ''">
+                    <img class="img-thumbnail" alt="100x100" ng-src="[[profile.avatar]]">
+                    <button class="btn btn-xs btn-danger" ng-click="profile.onAvatarRemove()">x</button>
+                </span>
             </div>
             <div class="row buttons">
                 <input class="btn btn-success" type="submit" value="Сохранить изменения" ng-click="profile.onSubmit()">
