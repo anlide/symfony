@@ -512,7 +512,26 @@ app.directive('ckEditor', function() {
   return {
     require: '?ngModel',
     link: function(scope, elm, attr, ngModel) {
-      var ck = CKEDITOR.replace(elm[0], { width: 800 });
+      CKEDITOR.allowedContent = true;
+      var config = {
+        customConfig : '',
+        toolbarCanCollapse : false,
+        colorButton_enableMore : false,
+        width: 800,
+        simpleImageBase64allowed: true,
+        toolbar :
+          [
+            { name: 'document',    items : [ 'Source' ] },
+            { name: 'clipboard',   items : [ 'Cut','Copy','Paste','PasteText','PasteFromWord','-','Undo','Redo' ] },
+            { name: 'basicstyles', items : [ 'Bold','Italic','Underline','Strike','Subscript','Superscript','-','RemoveFormat' ] },
+            { name: 'paragraph',   items : [ 'CreateDiv','-','JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'] },
+            { name: 'colors',      items : [ 'TextColor','BGColor' ] },
+            { name: 'insert',      items : [ 'Link', 'Image', 'addFile', 'addImage' ] },
+            { name: 'tools',       items : [ 'Maximize', 'About' ] }
+          ],
+        simpleuploads_acceptedExtensions :'7z|avi|csv|doc|docx|flv|gif|gz|gzip|jpeg|jpg|mov|mp3|mp4|mpc|mpeg|mpg|ods|odt|pdf|png|ppt|pxd|rar|rtf|tar|tgz|txt|vsd|wav|wma|wmv|xls|xml|zip'
+      };
+      var ck = CKEDITOR.replace(elm[0], config);
 
       if (!ngModel) return;
 
