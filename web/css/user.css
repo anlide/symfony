@@ -7,5 +7,5 @@ footer {
   margin-bottom: 10px;
 }
 .hide-on-init {
-  display: none;
+  display: none !important;
 }

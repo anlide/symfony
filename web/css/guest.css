@@ -39,5 +39,5 @@ body {
 }
 
 .hide-on-init {
-  display: none;
+  display: none !important;
 }
