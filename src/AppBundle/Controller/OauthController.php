@@ -25,6 +25,8 @@ class OauthController extends Controller
     // NOTE: что-то не так с моим nginx сервером (и QUERY_STRING приходит пустой, хотя конфиг явно правильный)
     // Нет времени изучать каксделать правильно через "$code = $request->query->get('code');"
     // Поэтому сделано немного порагульному получение $code
+    if ($method == 'register') return $this->redirectToRoute('oauth_register');
+    if ($method == 'register-finish') return $this->redirectToRoute('oauth_register_finish');
     if (!in_array($method, array('vk', 'google'))) {
       return $this->json('invalid method: '.$method);
     }
@@ -35,6 +37,7 @@ class OauthController extends Controller
       $oauth->fetchUserData($code, $request->getHost());
     } catch (\Exception $e) {
       // По какой-то причине данные не может получить
+      if (!isset($oauth)) $oauth = null;
       return $this->json(array($e->getMessage(), $oauth, $request->getRequestUri(), $code, $method));
     }
     /**
