@@ -10,8 +10,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * TODO: внимание!!
- * Наверное как-то можно объеденить методы vkAction и googleAction, но я за разумное время не могу найти как парсить uri и протестировать это
  * Class OauthController
  * @package AppBundle\Controller
  */
@@ -25,8 +23,8 @@ class OauthController extends Controller
     // NOTE: что-то не так с моим nginx сервером (и QUERY_STRING приходит пустой, хотя конфиг явно правильный)
     // Нет времени изучать каксделать правильно через "$code = $request->query->get('code');"
     // Поэтому сделано немного порагульному получение $code
-    if ($method == 'register') return $this->redirectToRoute('oauth_register');
-    if ($method == 'register-finish') return $this->redirectToRoute('oauth_register_finish');
+    if ($method == 'register') return $this->registerAction($request);
+    if ($method == 'register-finish') return $this->registerFinishAction($request);
     if (!in_array($method, array('vk', 'google'))) {
       return $this->json('invalid method: '.$method);
     }

@@ -55,7 +55,7 @@ class User
    * Даже проверять не буду - поддерживается ли ENUM
    * @ORM\Column(name="role", type="text")
    */
-  public $role = null;
+  public $role = 'user';
 
   /**
    * Get id
