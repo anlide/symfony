@@ -11,3 +11,8 @@ form .buttons {
 #share_email {
   width: 100%;
 }
+.jumbotron .views {
+  float: right;
+  display: block;
+  margin-top: -18px;
+}

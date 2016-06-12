@@ -5,8 +5,10 @@ namespace AppBundle\Controller;
 use AppBundle\Entity\Post;
 use AppBundle\Entity\PostEmail;
 use AppBundle\Entity\PostUser;
+use AppBundle\Entity\PostView;
 use AppBundle\Entity\User;
 use AppBundle\Repository\PostRepository;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -119,15 +121,39 @@ class PostController extends Controller
     // Разрешить смотреть если сообщение открыто по прямой ссылке
     // Разрешить смотреть если выдан персональный доступ
     $allow = $allowEdit = false;
-    if ($post->author == $user->id) $allow = $allowEdit = true;
-    if ($user->role == 'moderator') $allow = $allowEdit = true;
+    if ($post->author == $userId) $allow = $allowEdit = true;
+    if (($user !== null) && ($user->role == 'moderator')) $allow = $allowEdit = true;
     if ($post->shared) $allow = true;
     $postUser = $this->getDoctrine()
       ->getRepository('AppBundle:PostUser')
-      ->findOneBy(array('idUser' => $user->id));
+      ->findOneBy(array('idUser' => $userId));
     if ($postUser !== null) $allow = true;
     if (!$allow) throw new AccessDeniedHttpException();
-    return $this->render('post.html.twig', array('post' => $post, 'allowEdit' => $allowEdit));
+    // Подсчитаем количество просмотров и увеличим на 1, если данный пользователь не смотрел.
+    // Да. Можно по разному считать просмотры, но задаче не сказано каким именно образом вести счёт.
+    // Я выбрал такой. Один зарегистрированный пользовать = 1 просмотр. Любой гость = 1 просмотр.
+    $postView = $this->getDoctrine()
+      ->getRepository('AppBundle:PostView')
+      ->findOneBy(array('idUser' => ($userId !== null)?$userId:0, 'idPost' => $id));
+    if ($postView === null) {
+      $postView = new PostView();
+      $postView->idPost = $id;
+      $postView->idUser = ($userId !== null)?$userId:0;
+      $this->getDoctrine()->getManager()->persist($postView);
+      $this->getDoctrine()->getManager()->flush();
+    }
+    /**
+     * @var QueryBuilder $qb
+     */
+    $qb = $this->getDoctrine()->getManager()->createQueryBuilder();
+    $qb->select($qb->expr()->count('pv.idUser'));
+    $qb->from('AppBundle:PostView', 'pv');
+    $qb->where('pv.idPost = :post');
+    $qb->setParameters(array('post' => $id));
+
+    $views = $qb->getQuery()->getSingleScalarResult();
+
+    return $this->render('post.html.twig', array('post' => $post, 'allowEdit' => $allowEdit, 'views' => $views));
   }
   /**
    * RESTful view
