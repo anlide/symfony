@@ -107,7 +107,7 @@ class PostController extends Controller
     $user = $this->getDoctrine()
       ->getRepository('AppBundle:User')
       ->findOneBy(array('id' => $userId));
-    if ($user === null) return $this->redirect('/');
+    //if ($user === null) return $this->redirect('/'); // Гостей не блокируем в этом месте
     /**
      * @var Post $post
      */
