@@ -25,6 +25,6 @@ class DefaultController extends Controller
           ->getRepository('AppBundle:User')
           ->findOneBy(array('id' => $userId));
         if ($userId === null) return $this->render('guest.html.twig');
-        return $this->render('user.html.twig', array('user' => $user->name));
+        return $this->render('user.html.twig', array('user' => $user));
     }
 }

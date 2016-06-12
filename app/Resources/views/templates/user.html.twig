@@ -20,10 +20,11 @@
 <div class="container">
     <div class="header clearfix">
         <nav>
-            <ul class="nav nav-pills pull-right" ng-controller="TopMenuController as menu" ng-init="">
-                <li role="presentation" ng-class="{ 'active': menu.index == 1 }"><a href="/">Сообщения</a></li>
-                <li role="presentation" ng-class="{ 'active': menu.index == 2 }"><a href="/profile">Профиль</a></li>
-                <li role="presentation" ng-class="{ 'active': menu.index == 3 }" class="hide-on-init" ng-show="false"><a href="/admin">Админка</a></li>
+            <ul class="nav nav-pills pull-right" ng-controller="TopMenuController as menu">
+                <input type="hidden" id="role_menu" value="{{ user.role }}">
+                <li role="presentation" ng-class="{ 'active': menu.checkIndex(1) }"><a href="/">Сообщения</a></li>
+                <li role="presentation" ng-class="{ 'active': menu.checkIndex(2) }"><a href="/profile">Профиль</a></li>
+                <li role="presentation" ng-class="{ 'active': menu.checkIndex(3) }" class="hide-on-init" ng-hide="menu.role == 'user'"><a href="/admin">Админка</a></li>
                 <li role="presentation"><a href="/logout">Выход</a></li>
             </ul>
         </nav>

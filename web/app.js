@@ -24,14 +24,16 @@ app.config(function($interpolateProvider) {
   $interpolateProvider.startSymbol('[[');
   $interpolateProvider.endSymbol(']]');
 });
-app.controller('TopMenuController', [ '$http', function($http){
+app.controller('TopMenuController', [ '$http', '$rootScope', function($http, $rootScope){
   /**
    * Указанный пункт меню
    * 1 - Сообщения
    * 2 - Профиль
+   * 3 - Админка
    * @type {number}
    */
   this.index = 0;
+  this.role = $('input#role_menu').val();
   var url = new URL(document.URL);
   if (url.pathname == '/profile') {
     this.index = 2;
@@ -40,6 +42,13 @@ app.controller('TopMenuController', [ '$http', function($http){
   } else {
     this.index = 1;
   }
+  this.checkIndex = function(index) {
+    return index == this.index;
+  };
+  var self = this;
+  $rootScope.$on('changeRole', function(event, args) {
+    self.role = args['role'];
+  });
 } ]);
 app.controller('AuthController', [ '$http', function($http){
   this.email = '';
@@ -219,7 +228,7 @@ app.controller('OauthController', [ '$http', function($http){
     });
   };
 } ]);
-app.controller('ProfileController', [ '$http', '$scope', function($http, $scope){
+app.controller('ProfileController', [ '$http', '$rootScope', function($http, $rootScope){
   this.profileForm = null;
   this.inputFile = null;
   this.id = $('input#id').val();
@@ -228,6 +237,7 @@ app.controller('ProfileController', [ '$http', '$scope', function($http, $scope)
   this.vk = $('input#vk').val();
   this.google = $('input#google').val();
   this.role = $('input#role').val();
+  $rootScope.$broadcast("changeRole", { role: this.role });
   this.havePassword = $('input#have_password').val() == 1;
   this.avatar = $('input#avatar').val();
   /**
@@ -366,6 +376,7 @@ app.controller('ProfileController', [ '$http', '$scope', function($http, $scope)
         self.alertType = 5;
         self.role = 'user';
       }
+      $rootScope.$broadcast("changeRole", { role: self.role });
     });
   };
   this.onSocial = function(social) {
