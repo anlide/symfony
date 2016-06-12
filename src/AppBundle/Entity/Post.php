@@ -38,6 +38,10 @@ class Post
    * @ORM\Column(name="text", type="text")
    */
   public $text;
+  /**
+   * @ORM\Column(name="shared", type="boolean")
+   */
+  public $shared;
 
   /**
    * Get id

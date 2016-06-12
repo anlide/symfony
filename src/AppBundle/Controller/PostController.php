@@ -3,6 +3,8 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Entity\Post;
+use AppBundle\Entity\PostEmail;
+use AppBundle\Entity\PostUser;
 use AppBundle\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -148,6 +150,94 @@ class PostController extends Controller
     $em = $this->getDoctrine()->getManager();
     $em->remove($post);
     $em->flush();
+    return $this->json(true);
+  }
+  /**
+   * RESTful update
+   * @Route("/post={id}/share", name="post_share")
+   * @Method({"PUT"})
+   */
+  public function shareAction(Request $request, $id) {
+    $session = $request->getSession();
+    $session->start();
+    $userId = $session->get('user');
+    if ($userId === null) return $this->json(false);
+    /**
+     * @var User $user
+     */
+    $user = $this->getDoctrine()
+      ->getRepository('AppBundle:User')
+      ->findOneBy(array('id' => $userId));
+    if ($user === null) return $this->json(false);
+    /**
+     * @var Post $post
+     */
+    $post = $this->getDoctrine()
+      ->getRepository('AppBundle:Post')
+      ->findOneBy(array('id' => $id));
+    if ($post === null) return $this->json(false);
+    $post->shared = !$post->shared;
+    $this->getDoctrine()->getManager()->flush();
+    return $this->json(true);
+  }
+  /**
+   * RESTful update
+   * @Route("/post={id}/share_email", name="post_share_email")
+   * @Method({"PUT"})
+   */
+  public function shareEmailAction(Request $request, $id) {
+    $session = $request->getSession();
+    $session->start();
+    $userId = $session->get('user');
+    if ($userId === null) return $this->json(false);
+    /**
+     * @var User $user
+     */
+    $user = $this->getDoctrine()
+      ->getRepository('AppBundle:User')
+      ->findOneBy(array('id' => $userId));
+    if ($user === null) return $this->json(false);
+    /**
+     * @var Post $post
+     */
+    $post = $this->getDoctrine()
+      ->getRepository('AppBundle:Post')
+      ->findOneBy(array('id' => $id));
+    if ($post === null) return $this->json(false);
+    $json = json_decode($request->getContent(), true);
+    $email = $json['email'];
+    // Надо проверить - есть ли пользователь с таким email
+    // Если есть - выдать по id доступ
+    // Если нет - выдать по email доступ (то есть доступ будет выдан когда такой email появится у кого-то)
+    // Самому себе не выдавать
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return $this->json('Надо указать существующий email');
+    /**
+     * @var User $userShare
+     */
+    $userShare = $this->getDoctrine()
+      ->getRepository('AppBundle:User')
+      ->findOneBy(array('email' => $email));
+    if ($userShare === null) {
+      $postEmail = $this->getDoctrine()
+        ->getRepository('AppBundle:PostEmail')
+        ->findOneBy(array('email' => $email));
+      if ($postEmail !== null) return $this->json('Для '.$email.' уже есть сюда доступ');
+      $postEmail = new PostEmail();
+      $postEmail->idPost = $id;
+      $postEmail->email = $email;
+      $this->getDoctrine()->getManager()->persist($postEmail);
+    } else {
+      $postUser = $this->getDoctrine()
+        ->getRepository('AppBundle:PostUser')
+        ->findOneBy(array('idUser' => $userShare->id));
+      if ($postUser !== null) return $this->json('Для '.$email.' уже есть сюда доступ');
+      if ($userShare->id == $user->id) return $this->json('У вас и так уже есть доступ сюда');
+      $postUser = new PostUser();
+      $postUser->idPost = $id;
+      $postUser->idUser = $userShare->id;
+      $this->getDoctrine()->getManager()->persist($postUser);
+    }
+    $this->getDoctrine()->getManager()->flush();
     return $this->json(true);
   }
 }

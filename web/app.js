@@ -426,13 +426,55 @@ app.controller('PostController', [ '$http', function($http){
   this.id = $('input#id').val();
   this.title = $('input#title').val();
   this.content = $('input#message').val();
+  this.shared = $('input#shared').val();
   /**
    * 0 - Без уведомлений
    * 1 - Сообщение успешно добавлено
+   * 2 - Сообщением успешно поделились для email
+   * 3 - Разрешён доступ по ссылке
+   * 4 - Запрещён доступ по ссылке
+   * 5 - Ошибка при попытке поделится email
    * @type {number}
    */
   this.alertType = 0;
   this.posts = [];
+  this.dialog = null;
+  this.sharedEmail = '';
+  this.serverError = '';
+  var self = this;
+  setTimeout(function(){
+    // К вопросу, что не разобрался где у angular onInit, поэтому завёрнуто в setTimeout
+    self.dialog = $( "#dialog_share" ).dialog({
+      autoOpen: false,
+      modal: true,
+      resizable: false,
+      buttons: [
+        {
+          text: "Я передумал",
+          click: function() {
+            $( this ).dialog( "close" );
+          }
+        },
+        {
+          text: "Выдать",
+          click: function() {
+            var share_email = $('input#share_email').val();
+            var button_self = $(this).parent().find('button[class!=ui-dialog-titlebar-close]:eq(2)');
+            button_self.prop('disabled', true);
+            self._shareEmail(share_email, function() {
+              self.dialog.dialog( "close" );
+              button_self.prop('disabled', false);
+              $('input#share_email').val('');
+            });
+          }
+        }
+      ],
+      open: function( event, ui ) {
+        $(this).parent().find('button[class!=ui-dialog-titlebar-close]:eq(1)').addClass('btn btn-default');
+        $(this).parent().find('button[class!=ui-dialog-titlebar-close]:eq(2)').addClass('btn btn-success');
+      }
+    });
+  }, 0);
   this.onNew = function() {
     this.mode = 2;
     this.alertType = 0;
@@ -506,6 +548,41 @@ app.controller('PostController', [ '$http', function($http){
       }
     });
   };
+  this.onShareSubmit = function() {
+    this.dialog.dialog('open');
+  };
+  this.onShareLink = function() {
+    var self = this;
+    $http.put('/post=' + self.id + '/share').success(function(data){
+      if (data !== false) {
+        self.shared = !self.shared;
+        if (self.shared) {
+          self.alertType = 3;
+        } else {
+          self.alertType = 4;
+        }
+      } else {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+      }
+    });
+  };
+  this._shareEmail = function(email, callback) {
+    var self = this;
+    $http.put('/post=' + self.id + '/share_email', { email: email }).success(function(data){
+      if (data === false) {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+        return;
+      }
+      if (data === true) {
+        self.sharedEmail = email;
+        self.alertType = 2;
+      } else {
+        self.serverError = data;
+        self.alertType = 5;
+      }
+      callback();
+    });
+  }
 } ]);
 app.controller('AdminPostController', [ '$http', function($http){
   // Наверное было бы правильно объеденить код с PostController
