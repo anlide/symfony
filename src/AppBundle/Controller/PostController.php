@@ -153,7 +153,7 @@ class PostController extends Controller
 
     $views = $qb->getQuery()->getSingleScalarResult();
 
-    return $this->render('post.html.twig', array('post' => $post, 'allowEdit' => $allowEdit, 'views' => $views));
+    return $this->render('post.html.twig', array('user' => $user, 'post' => $post, 'allowEdit' => $allowEdit, 'views' => $views));
   }
   /**
    * RESTful view
@@ -187,7 +187,7 @@ class PostController extends Controller
       return $this->redirect('/admin/post='.$post->id);
     }
     if (!$author) throw new AccessDeniedHttpException();
-    return $this->render('post.edit.html.twig', array('post' => $post));
+    return $this->render('post.edit.html.twig', array('user' => $user, 'post' => $post));
   }
   /**
    * RESTful update
