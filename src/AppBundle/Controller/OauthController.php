@@ -16,12 +16,9 @@ use Symfony\Component\HttpFoundation\Request;
 class OauthController extends Controller
 {
   /**
-   * Уж извиняйте, что пересикается с "/oauth/register" и "/oauth/register-finish"
    * Сами ссылки callback должны быть именно такими, я уже проводил исследование на много часов
    * Подбирал как сделать oauth для многих соц сетей и в частности стояла задача подобрать единообразный callback url (не считая рагульного twitter, который использует протокол 1.1 , когда все остальные перешли на 2.0)
    * Так вот ссылки должны быть без query params.
-   *
-   * Ну и переделывать "/oauth/register" и "/oauth/register-finish" можно было бы, но из-за очень жостких сроков написал пояснение и поставил маркер TODO
    *
    * @Route("/oauth/{method}", name="oauth")
    */
@@ -30,8 +27,6 @@ class OauthController extends Controller
     // NOTE: что-то не так с моим nginx сервером (и QUERY_STRING приходит пустой, хотя конфиг явно правильный)
     // Нет времени изучать каксделать правильно через "$code = $request->query->get('code');"
     // Поэтому сделано немного порагульному получение $code
-    if ($method == 'register') return $this->registerAction($request);
-    if ($method == 'register-finish') return $this->registerFinishAction($request);
     if (!in_array($method, array('vk', 'google'))) {
       return $this->json('invalid method: '.$method);
     }
@@ -59,7 +54,7 @@ class OauthController extends Controller
       if ($userIdSession === null) {
         // Пользователя нет и сессии нет - значит надо предложить закончить регистрацию
         $session->set('oauth', $oauth);
-        return $this->redirect($request->getSchemeAndHttpHost().'/oauth/register');
+        return $this->redirect($request->getSchemeAndHttpHost().'/oauth-register');
       } else {
         // Пользователя нет но сессия есть - значит надо дополнить аккаунт и вернутся в профиль
         /**
@@ -101,7 +96,7 @@ class OauthController extends Controller
     }
   }
   /**
-   * @Route("/oauth/register", name="oauth_register")
+   * @Route("/oauth-register", name="oauth_register")
    */
   public function registerAction(Request $request)
   {
@@ -116,7 +111,7 @@ class OauthController extends Controller
     return $this->render('oauth.register.html.twig', array('oauth' => $oauth));
   }
   /**
-   * @Route("/oauth/register-finish", name="oauth_register_finish")
+   * @Route("/oauth-register-finish", name="oauth_register_finish")
    */
   public function registerFinishAction(Request $request)
   {

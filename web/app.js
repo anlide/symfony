@@ -214,7 +214,7 @@ app.controller('AuthController', [ '$http', function($http){
 } ]);
 app.controller('OauthController', [ '$http', function($http){
   this.onRegister = function() {
-    $http.get('/oauth/register-finish').success(function(data){
+    $http.get('/oauth-register-finish').success(function(data){
       window.location.replace("/");
     });
   };
