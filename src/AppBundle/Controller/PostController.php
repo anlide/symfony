@@ -86,7 +86,7 @@ class PostController extends Controller
       ->getRepository('AppBundle:Post')
       ->findOneBy(array('id' => $id));
     if ($post === null) return $this->redirect('/');
-    return $this->render('post.html.twig', array('post' => $post, 'test' => 123));
+    return $this->render('post.html.twig', array('post' => $post));
   }
   /**
    * RESTful update
@@ -126,7 +126,6 @@ class PostController extends Controller
    * @Method({"DELETE"})
    */
   public function deleteAction(Request $request, $id) {
-    // TODO: implement this
     // TODO: удалять присоединённые картинки
     $session = $request->getSession();
     $session->start();
@@ -139,7 +138,6 @@ class PostController extends Controller
       ->getRepository('AppBundle:User')
       ->findOneBy(array('id' => $userId));
     if ($user === null) return $this->json(false);
-    $json = json_decode($request->getContent(), true);
     /**
      * @var Post $post
      */

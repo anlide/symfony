@@ -470,6 +470,7 @@ app.controller('PostController', [ '$http', function($http){
     $http.put('/post=' + this.id, { title: this.title, content: this.content }).success(function(data){
       if (data !== false) {
         // Всё хорошо - редирект на главную страницу
+        // TODO: нарисовать что-то типа "успешно отредактировано"
         window.location.href = '/';
       } else {
         alert('Ошибка-нежданчик, перезайдите пожалуйста');
@@ -483,7 +484,7 @@ app.controller('PostController', [ '$http', function($http){
     $http.delete('/post=' + this.id).success(function(data){
       if (data !== false) {
         // Всё хорошо - редирект на главную страницу
-        // TODO: нарисовать что-то типа "успешно отредактировано"
+        // TODO: нарисовать что-то типа "успешно удалено"
         window.location.href = '/';
       } else {
         alert('Ошибка-нежданчик, перезайдите пожалуйста');
@@ -512,6 +513,9 @@ app.controller('AdminPostController', [ '$http', function($http){
   //
   // Ещё я бы сделал на стороне JS классы для объектов пользователей и сообщений
   // Но опять таки - безумные сроки
+  this.id = $('input#id').val();
+  this.title = $('input#title').val();
+  this.content = $('input#message').val();
   this.posts = [];
   this.users = [];
   this.updatePosts = function() {
@@ -530,6 +534,30 @@ app.controller('AdminPostController', [ '$http', function($http){
           post.authorName = self.users[post.id]['name']; // Мне такой способ использования очень не нравится, но времени изучать как правильно это сделать - нет
           self.posts.push(post);
         }
+      } else {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+      }
+    });
+  };
+  this.onEditSubmit = function() {
+    if (this.title == '') return;
+    var self = this;
+    $http.put('/admin/post=' + this.id, { title: this.title, content: this.content }).success(function(data){
+      if (data !== false) {
+        // TODO: нарисовать что-то типа "успешно отредактировано"
+        window.location.href = '/admin/posts';
+      } else {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+      }
+    });
+  };
+  this.onDeleteSubmit = function() {
+    if (this.title == '') return;
+    var self = this;
+    $http.delete('/admin/post=' + this.id).success(function(data){
+      if (data !== false) {
+        // TODO: нарисовать что-то типа "успешно удалено"
+        window.location.href = '/admin/posts';
       } else {
         alert('Ошибка-нежданчик, перезайдите пожалуйста');
       }

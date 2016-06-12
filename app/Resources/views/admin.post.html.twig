@@ -1,0 +1,35 @@
+{% extends 'templates/user.html.twig' %}
+
+{% block body %}
+  <link href="{{ asset('css/post.css') }}" rel="stylesheet"/>
+  <script src="{{ asset('ckeditor/ckeditor.js') }}"></script>
+
+  <div ng-controller="AdminPostController as post">
+    <div class="jumbotron">
+      <h1>Админка / Редактировать сообщение</h1>
+      <p class="lead">Кто-то осмелился недостаточно ярко восхвалить symfony? Надо немедленно это исправить!</p>
+      <a role="button" href="/admin/posts" class="btn btn-lg btn-default" >Назад</a>
+    </div>
+
+    <form class="container hide-on-init">
+      <input type="hidden" id="id" ng-model="post.id" value="{{ post.id }}">
+      <div class="row">
+        <label for="title">
+          Заголовок: {{ post.title }}
+        </label>
+        <input type="text" id="title" ng-model="post.title" required value="{{ post.title }}">
+      </div>
+      <div class="row">
+        <label for="message">
+          Тело сообщения:
+        </label>
+        <textarea ck-editor id="message" ng-model="post.content">{{ post.text }}</textarea>
+      </div>
+      <div class="row buttons">
+        <input class="btn btn-success" type="submit" value="Соханить изменения" ng-click="post.onEditSubmit()">
+        <input class="btn btn-danger" type="submit" value="Удалить" ng-click="post.onDeleteSubmit()">
+      </div>
+    </form> <!-- /container -->
+  </div>
+
+{% endblock %}
