@@ -608,7 +608,7 @@ app.controller('AdminPostController', [ '$http', function($http){
         for (var index in data['posts']) {
           var post = data['posts'][index];
           post.time *= 1000;
-          post.authorName = self.users[post.id]['name']; // Мне такой способ использования очень не нравится, но времени изучать как правильно это сделать - нет
+          post.authorName = self.users[post['author']]['name']; // Мне такой способ использования очень не нравится, но времени изучать как правильно это сделать - нет
           self.posts.push(post);
         }
       } else {
