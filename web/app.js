@@ -564,6 +564,47 @@ app.controller('AdminPostController', [ '$http', function($http){
     });
   };
 } ]);
+app.controller('AdminUserController', [ '$http', function($http){
+  this.id = null;
+  this.users = [];
+  this.updateUsers = function() {
+    var self = this;
+    $http.get('/admin/users-list').success(function(data){
+      if (data !== false) {
+        self.users = [];
+        for (var index in data['users']) {
+          var user = data['users'][index];
+          self.users[user['id']] = user;
+        }
+      } else {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+      }
+    });
+  };
+  this.onEditSubmit = function() {
+    var self = this;
+    $http.put('/admin/user=' + this.id, { name: this.name }).success(function(data){
+      if (data !== false) {
+        // TODO: нарисовать что-то типа "успешно отредактировано"
+        window.location.href = '/admin/users';
+      } else {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+      }
+    });
+  };
+  this.onDeleteSubmit = function() {
+    if (this.title == '') return;
+    var self = this;
+    $http.delete('/admin/user=' + this.id).success(function(data){
+      if (data !== false) {
+        // TODO: нарисовать что-то типа "успешно удалено"
+        window.location.href = '/admin/users';
+      } else {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+      }
+    });
+  };
+} ]);
 app.filter('orderObjectBy', function() {
   return function (items, field, reverse) {
     var filtered = [];

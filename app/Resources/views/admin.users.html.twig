@@ -1,10 +1,30 @@
 {% extends 'templates/user.html.twig' %}
 
 {% block body %}
+    <link href="{{ asset('css/admin.users.css') }}" rel="stylesheet"/>
+    <script src="{{ asset('ckeditor/ckeditor.js') }}"></script>
 
-    <div class="jumbotron">
-        <h1>Админка</h1>
-        <p class="lead">Управление пользователями</p>
+    <div ng-controller="AdminUserController as users">
+        <div class="jumbotron">
+            <h1>Админка</h1>
+            <p class="lead">Управление пользователями</p>
+        </div>
+
+        <div class="container hide-on-init" ng-init="users.updateUsers()">
+            <article ng-repeat="user in users.users | orderObjectBy:'name':true">
+                <h2><a href="/admin/user=[[user.id]]">[[user.name]]</a></h2>
+                <div>
+                    <span ng-show="[[user.avatar != null]]"><img class="img-thumbnail" ng-src="[[user.avatar]]"></span>
+                    <span>Email: <a href="mailto:[[user.email]]">[[user.email]]</a></span>
+                </div>
+            </article>
+            <nav style="display: none;">
+                <!-- TODO: implement this -->
+                <ul class="pager">
+                    <li><a href="#">❰</a></li>
+                    <li><a href="#">❱</a></li>
+                </ul>
+            </nav>
+        </div> <!-- /container -->
     </div>
-
 {% endblock %}
