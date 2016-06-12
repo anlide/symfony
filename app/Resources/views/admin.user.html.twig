@@ -10,8 +10,8 @@
       <p class="lead">Управление пользователем, если его имя или аватарка выглядят слишком вызывающе - вы можете это исправить.</p>
     </div>
 
-    <div ng-show="profile.alertType == 1" class="alert alert-success hide-on-init" role="alert"><strong>Этот профайл изменён!</strong> Все ваши изменения тщательно сохранены.</div>
-    <div ng-show="profile.alertType == 2" class="alert alert-warning hide-on-init" role="alert"><strong>Получилось!</strong> Аватар удалён!</div>
+    <div ng-show="user.alertType == 1" class="alert alert-success hide-on-init" role="alert"><strong>Этот профайл изменён!</strong> Все ваши изменения тщательно сохранены.</div>
+    <div ng-show="user.alertType == 2" class="alert alert-warning hide-on-init" role="alert"><strong>Получилось!</strong> Аватар удалён!</div>
 
     <form class="container">
       <input type="hidden" id="id" value="{{ userEdit.id }}"/>
