@@ -108,6 +108,16 @@ class User
     foreach ($posts as $post) {
       $post->author = $this->id;
     }
+    /**
+     * @var PostUser[] $postUsers
+     */
+    $postUsers = $doctrine
+      ->getRepository('AppBundle:PostUser')
+      ->findBy(array('idUser' => $userOther->getId()));
+    foreach ($postUsers as $postUser) {
+      $postUser->idUser = $this->id;
+    }
+    // Слияние PostView специально не делается
     $doctrine->getManager()->remove($userOther);
   }
 }
