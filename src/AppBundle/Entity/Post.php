@@ -41,7 +41,7 @@ class Post
   /**
    * @ORM\Column(name="shared", type="boolean")
    */
-  public $shared;
+  public $shared = false;
 
   /**
    * Get id
