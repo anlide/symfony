@@ -20,6 +20,7 @@ class PostController extends Controller
     $session = $request->getSession();
     $session->start();
     $userId = $session->get('user');
+    if ($userId === null) return $this->json(false);
     /**
      * @var User $user
      */

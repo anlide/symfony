@@ -1,10 +1,27 @@
 {% extends 'templates/user.html.twig' %}
 
 {% block body %}
+    <link href="{{ asset('css/post.css') }}" rel="stylesheet"/>
+    <script src="{{ asset('ckeditor/ckeditor.js') }}"></script>
 
-    <div class="jumbotron">
-        <h1>Админка</h1>
-        <p class="lead">Управление сообщениями</p>
+    <div ng-controller="AdminPostController as post">
+        <div class="jumbotron">
+            <h1>Админка</h1>
+            <p class="lead">Управление сообщениями</p>
+        </div>
+
+        <div class="container hide-on-init" ng-init="post.updatePosts()">
+            <article ng-repeat="message in post.posts | orderObjectBy:'time':true">
+                <h2><a href="/admin/post=[[message.id]]">[[message.title]]</a></h2>
+                <div>[[message.time | date:'yyyy-MM-dd HH:mm:ss']] // <a href="/admin/user=[[message.author]]">[[message.authorName]]</a></div>
+            </article>
+            <nav style="display: none;">
+                <!-- TODO: implement this -->
+                <ul class="pager">
+                    <li><a href="#">❰</a></li>
+                    <li><a href="#">❱</a></li>
+                </ul>
+            </nav>
+        </div> <!-- /container -->
     </div>
-
 {% endblock %}

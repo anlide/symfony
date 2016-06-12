@@ -506,6 +506,36 @@ app.controller('PostController', [ '$http', function($http){
     });
   };
 } ]);
+app.controller('AdminPostController', [ '$http', function($http){
+  // Наверное было бы правильно объеденить код с PostController
+  // Но в виду очень сжатых сроков - нет времени думать как правильно это сделать
+  //
+  // Ещё я бы сделал на стороне JS классы для объектов пользователей и сообщений
+  // Но опять таки - безумные сроки
+  this.posts = [];
+  this.users = [];
+  this.updatePosts = function() {
+    var self = this;
+    $http.get('/admin/posts-list').success(function(data){
+      if (data !== false) {
+        self.users = [];
+        for (var index in data['users']) {
+          var user = data['users'][index];
+          self.users[user['id']] = user;
+        }
+        self.posts = [];
+        for (var index in data['posts']) {
+          var post = data['posts'][index];
+          post.time *= 1000;
+          post.authorName = self.users[post.id]['name']; // Мне такой способ использования очень не нравится, но времени изучать как правильно это сделать - нет
+          self.posts.push(post);
+        }
+      } else {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+      }
+    });
+  };
+} ]);
 app.filter('orderObjectBy', function() {
   return function (items, field, reverse) {
     var filtered = [];
