@@ -3,6 +3,8 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Entity\Post;
+use AppBundle\Entity\PostEmail;
+use AppBundle\Entity\PostUser;
 use AppBundle\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -169,7 +171,19 @@ class ProfileController extends Controller
         $user->mergeAccout($userOther, $this->getDoctrine());
       } else {
         // Такого email нет - просто пишем его себе
-        // TODO: convert PostEmail -> PostUser
+        /**
+         * @var PostEmail $postEmail
+         */
+        $postEmail = $this->getDoctrine()
+          ->getRepository('AppBundle:PostEmail')
+          ->findOneBy(array('email' => $email));
+        if ($postEmail !== null) {
+          $postUser = new PostUser();
+          $postUser->idPost = $postEmail->idPost;
+          $postUser->idUser = $user->id;
+          $this->getDoctrine()->getManager()->persist($postUser);
+          $this->getDoctrine()->getManager()->remove($postEmail);
+        }
       }
       $user->email = $email;
       $this->getDoctrine()->getManager()->flush();

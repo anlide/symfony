@@ -2,6 +2,8 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Entity\PostEmail;
+use AppBundle\Entity\PostUser;
 use AppBundle\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -97,7 +99,19 @@ class AuthController extends Controller
     $user->register($json['email'], $json['password']);
     $em = $this->getDoctrine()->getManager();
     $em->persist($user);
-    // TODO: convert PostEmail -> PostUser
+    /**
+     * @var PostEmail $postEmail
+     */
+    $postEmail = $this->getDoctrine()
+      ->getRepository('AppBundle:PostEmail')
+      ->findOneBy(array('email' => $user->email));
+    if ($postEmail !== null) {
+      $postUser = new PostUser();
+      $postUser->idPost = $postEmail->idPost;
+      $postUser->idUser = $user->id;
+      $em->persist($postUser);
+      $em->remove($postEmail);
+    }
     $em->flush();
     $message = \Swift_Message::newInstance()
       ->setSubject('Register symfony.llk-guild.ru')
