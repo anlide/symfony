@@ -71,7 +71,6 @@ class AuthController extends Controller
       return $this->json(false);
     }
     $user->confirmCode = null;
-    $em->persist($user);
     $em->flush();
     $session = $request->getSession();
     $session->start();
@@ -145,7 +144,6 @@ class AuthController extends Controller
       ->findOneBy(array('email' => $email));
     if ($user->confirmCode === null) {
       $user->confirmCode = $user->generateRandomString();
-      $em->persist($user);
       $em->flush();
     }
     $message = \Swift_Message::newInstance()
@@ -180,7 +178,6 @@ class AuthController extends Controller
       ->findOneBy(array('email' => $email));
     if ($user->confirmCode === null) {
       $user->confirmCode = $user->generateRandomString();
-      $em->persist($user);
       $em->flush();
     }
     $message = \Swift_Message::newInstance()
