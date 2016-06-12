@@ -97,6 +97,7 @@ class AuthController extends Controller
     $user->register($json['email'], $json['password']);
     $em = $this->getDoctrine()->getManager();
     $em->persist($user);
+    // TODO: convert PostEmail -> PostUser
     $em->flush();
     $message = \Swift_Message::newInstance()
       ->setSubject('Register symfony.llk-guild.ru')

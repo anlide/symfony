@@ -6,11 +6,14 @@ use AppBundle\Entity\Post;
 use AppBundle\Entity\PostEmail;
 use AppBundle\Entity\PostUser;
 use AppBundle\Entity\User;
+use AppBundle\Repository\PostRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PostController extends Controller
 {
@@ -30,9 +33,30 @@ class PostController extends Controller
       ->getRepository('AppBundle:User')
       ->findOneBy(array('id' => $userId));
     if ($user === null) return $this->json(false);
-    $posts = $this->getDoctrine()
-      ->getRepository('AppBundle:Post')
-      ->findBy(array('author' => $userId));
+    // Я уверен, что как-то можно сделать лучше - но время совсем поджимает TODO
+    // Сделаю несколько вариантов запросов (хотя разумеется должна быть возможно сделать в виде одного запроса)
+    // Если роль Модератор - просто выгребаем все сообщения
+    // Если роль пользователь - то выгребаем все свои сообщения и все shared сообщения
+    //
+    // С прямыми ссылками ничего тут не делаем
+    if ($user->role == 'moderator') {
+      $posts = $this->getDoctrine()
+        ->getRepository('AppBundle:Post')
+        ->findAll();
+      return $this->json($posts);
+    }
+    /**
+     * @var PostRepository $repository
+     */
+    $repository = $this->getDoctrine()->getRepository('AppBundle:Post');
+    $query = $repository->createQueryBuilder('p')
+      ->select()
+      ->leftJoin('AppBundle:PostUser', 'pu', 'WITH', 'p.id = pu.idPost AND pu.idUser = :user')
+      ->where('p.author = :user')
+      ->orWhere('pu.idUser = :user')
+      ->setParameters(array('user' => $userId))
+      ->getQuery();
+    $posts = $query->getResult();
     return $this->json($posts);
   }
   /**
@@ -74,6 +98,7 @@ class PostController extends Controller
     $session = $request->getSession();
     $session->start();
     $userId = $session->get('user');
+    //if ($userId === null) return $this->redirect('/'); // Гостей не блокируем в этом месте
     /**
      * @var User $user
      */
@@ -88,7 +113,55 @@ class PostController extends Controller
       ->getRepository('AppBundle:Post')
       ->findOneBy(array('id' => $id));
     if ($post === null) return $this->redirect('/');
-    return $this->render('post.html.twig', array('post' => $post));
+    // Сообщение должно открываться для просмотра, а для редактирования надо сделать отдельный метод
+    // Разрешить смотреть автору
+    // Разрешить смотреть модератору
+    // Разрешить смотреть если сообщение открыто по прямой ссылке
+    // Разрешить смотреть если выдан персональный доступ
+    $allow = $allowEdit = false;
+    if ($post->author == $user->id) $allow = $allowEdit = true;
+    if ($user->role == 'moderator') $allow = $allowEdit = true;
+    if ($post->shared) $allow = true;
+    $postUser = $this->getDoctrine()
+      ->getRepository('AppBundle:PostUser')
+      ->findOneBy(array('idUser' => $user->id));
+    if ($postUser !== null) $allow = true;
+    if (!$allow) throw new AccessDeniedHttpException();
+    return $this->render('post.html.twig', array('post' => $post, 'allowEdit' => $allowEdit));
+  }
+  /**
+   * RESTful view
+   * @Route("/post={id}/edit", name="post_edit")
+   * @Method({"GET"})
+   */
+  public function editAction(Request $request, $id) {
+    $session = $request->getSession();
+    $session->start();
+    $userId = $session->get('user');
+    if ($userId === null) throw new AccessDeniedHttpException();
+    /**
+     * @var User $user
+     */
+    $user = $this->getDoctrine()
+      ->getRepository('AppBundle:User')
+      ->findOneBy(array('id' => $userId));
+    if ($user === null) throw new AccessDeniedHttpException();
+    /**
+     * @var Post $post
+     */
+    $post = $this->getDoctrine()
+      ->getRepository('AppBundle:Post')
+      ->findOneBy(array('id' => $id));
+    if ($post === null) throw new NotFoundHttpException();
+    // Сообщение должно открываться для просмотра, а для редактирования надо сделать отдельный метод
+    // Разрешить редактировать автору
+    // Разрешить редактировать модератору -- НО отправить его в админку
+    $author = ($post->author == $user->id);
+    if (($user->role == 'moderator') && (!$author)) {
+      return $this->redirect('/admin/post='.$post->id);
+    }
+    if (!$author) throw new AccessDeniedHttpException();
+    return $this->render('post.edit.html.twig', array('post' => $post));
   }
   /**
    * RESTful update

@@ -169,6 +169,7 @@ class ProfileController extends Controller
         $user->mergeAccout($userOther, $this->getDoctrine());
       } else {
         // Такого email нет - просто пишем его себе
+        // TODO: convert PostEmail -> PostUser
       }
       $user->email = $email;
       $this->getDoctrine()->getManager()->flush();

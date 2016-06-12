@@ -1,0 +1,58 @@
+{% extends 'templates/user.html.twig' %}
+
+{% block body %}
+  <link href="{{ asset('css/post.css') }}" rel="stylesheet"/>
+  <script src="{{ asset('ckeditor/ckeditor.js') }}"></script>
+
+  <div ng-controller="PostController as post">
+    <div class="jumbotron">
+      <h1>Редактировать сообщение</h1>
+      <p class="lead">Хотите восхвалить SYMFONY ещё ярче? Дерзайте!</p>
+      <a role="button" href="/post={{ post.id }}" class="btn btn-lg btn-default" >Я передумал</a>
+    </div>
+
+    <div ng-show="post.alertType == 2" class="alert alert-success hide-on-init" role="alert"><strong>Вы успешно поделились!</strong> Ваше сообщение теперь доступно для [[post.sharedEmail]].</div>
+    <div ng-show="post.alertType == 3" class="alert alert-success hide-on-init" role="alert"><strong>Вы успешно поделились!</strong> Ваше сообщение теперь доступно по прямой ссылке.</div>
+    <div ng-show="post.alertType == 4" class="alert alert-success hide-on-init" role="alert"><strong>Вы успешно скрыли!</strong> Ваше сообщение теперь сокрыто по прямой ссылке.</div>
+    <div ng-show="post.alertType == 5" class="alert alert-danger hide-on-init" role="alert"><strong>Ошибка!</strong> [[post.serverError]].</div>
+
+    <div id="dialog_share" title="Поделиться" style="display: none;">
+      <div>
+        <button class="btn btn-default btn-block" ng-click="post.onShareLink()">
+          <span ng-hide="post.shared">Открыть доступ по ссылке</span>
+          <span ng-show="post.shared">Закрыть доступ по ссылке</span>
+        </button>
+      </div>
+      <hr>
+      <div>
+        <label>
+          Дать доступ по email:
+          <input type="email" id="share_email">
+        </label>
+      </div>
+    </div>
+
+    <form class="container hide-on-init">
+      <input type="hidden" id="id" ng-model="post.id" value="{{ post.id }}">
+      <input type="hidden" id="shared" ng-model="post.shared" value="{{ post.shared }}">
+      <div class="row">
+        <label for="title">
+          Заголовок: {{ post.title }}
+        </label>
+        <input type="text" id="title" ng-model="post.title" required value="{{ post.title }}">
+      </div>
+      <div class="row">
+        <label for="message">
+          Тело сообщения:
+        </label>
+        <textarea ck-editor id="message" ng-model="post.content">{{ post.text }}</textarea>
+      </div>
+      <div class="row buttons">
+        <input class="btn btn-success" type="submit" value="Соханить изменения" ng-click="post.onEditSubmit()">
+        <input class="btn btn-danger" type="submit" value="Удалить" ng-click="post.onDeleteSubmit()">
+        <input class="btn btn-default" type="submit" value="Поделиться" ng-click="post.onShareSubmit()">
+      </div>
+    </form> <!-- /container -->
+  </div>
+
+{% endblock %}
