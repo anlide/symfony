@@ -228,7 +228,7 @@ app.controller('OauthController', [ '$http', function($http){
     });
   };
 } ]);
-app.controller('ProfileController', [ '$http', '$rootScope', function($http, $rootScope){
+app.controller('ProfileController', [ '$http', '$scope', '$rootScope', function($http, $scope, $rootScope){
   this.profileForm = null;
   this.inputFile = null;
   this.id = $('input#id').val();
