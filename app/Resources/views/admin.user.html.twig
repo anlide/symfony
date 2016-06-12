@@ -1,0 +1,50 @@
+{% extends 'templates/user.html.twig' %}
+
+{% block body %}
+  <link href="{{ asset('css/profile.css') }}" rel="stylesheet"/>
+  <script src="{{ asset('ckeditor/ckeditor.js') }}"></script>
+
+  <div ng-controller="AdminUserController as user">
+    <div class="jumbotron">
+      <h1>Админка / пользователь "{{ userEdit.name }}"</h1>
+      <p class="lead">Управление пользователем, если его имя или аватарка выглядят слишком вызывающе - вы можете это исправить.</p>
+    </div>
+
+    <div ng-show="profile.alertType == 1" class="alert alert-success hide-on-init" role="alert"><strong>Этот профайл изменён!</strong> Все ваши изменения тщательно сохранены.</div>
+    <div ng-show="profile.alertType == 2" class="alert alert-warning hide-on-init" role="alert"><strong>Получилось!</strong> Аватар удалён!</div>
+
+    <form class="container">
+      <input type="hidden" id="id" value="{{ userEdit.id }}"/>
+      <input type="hidden" id="avatar" value="{{ userEdit.avatar }}"/>
+      <div class="row">
+        <label>
+          <span>Имя</span>
+          <input type="text" id="name" ng-model="user.name" value="{{ userEdit.name }}">
+        </label>
+      </div>
+      <div class="row">
+        <label>
+          <span>Email</span>
+          <input type="email" id="email" ng-model="user.email" value="{{ userEdit.email }}" readonly="readonly" disabled="disabled">
+        </label>
+      </div>
+      <div class="row">
+        <label><span>Соц сети</span></label>
+        <input type="hidden" id="vk" value="{{ userEdit.vk }}"/>
+        <input type="hidden" id="google" value="{{ userEdit.google }}"/>
+        <button disabled class="btn" ng-class="{ 'btn-default': user.vk == '', 'btn-info': user.vk != '' }" ng-click="user.onSocial('vk')">vk</button>
+        <button disabled class="btn" ng-class="{ 'btn-default': user.google == '', 'btn-info': user.google != '' }" ng-click="user.onSocial('google')">google</button>
+      </div>
+      <div class="row">
+        <label><span>Аватар</span></label>
+        <span class="avatar_details hide-on-init" ng-hide="user.avatar == ''">
+            <img class="img-thumbnail" alt="100x100" ng-src="[[user.avatar]]">
+            <button class="btn btn-xs btn-danger" ng-click="user.onAvatarRemove()">x</button>
+        </span>
+      </div>
+      <div class="row buttons">
+        <input class="btn btn-success" type="submit" value="Сохранить изменения" ng-click="user.onSubmit()">
+      </div>
+    </form> <!-- /container -->
+  </div>
+{% endblock %}

@@ -565,8 +565,20 @@ app.controller('AdminPostController', [ '$http', function($http){
   };
 } ]);
 app.controller('AdminUserController', [ '$http', function($http){
-  this.id = null;
+  this.id = $('input#id').val();
+  this.email = $('input#email').val();
+  this.name = $('input#name').val();
+  this.vk = $('input#vk').val();
+  this.google = $('input#google').val();
+  this.avatar = $('input#avatar').val();
   this.users = [];
+  /**
+   * 0 - Без уведомлений
+   * 1 - Пользователь изменён
+   * 2 - Аватар удалён
+   * @type {number}
+   */
+  this.alertType = 0;
   this.updateUsers = function() {
     var self = this;
     $http.get('/admin/users-list').success(function(data){
@@ -581,29 +593,31 @@ app.controller('AdminUserController', [ '$http', function($http){
       }
     });
   };
-  this.onEditSubmit = function() {
+  this.onSubmit = function() {
+    // Разрешено редактировать только имя пользователя
     var self = this;
     $http.put('/admin/user=' + this.id, { name: this.name }).success(function(data){
       if (data !== false) {
-        // TODO: нарисовать что-то типа "успешно отредактировано"
-        window.location.href = '/admin/users';
+        self.alertType = 1;
       } else {
         alert('Ошибка-нежданчик, перезайдите пожалуйста');
       }
     });
   };
   this.onDeleteSubmit = function() {
-    if (this.title == '') return;
-    var self = this;
-    $http.delete('/admin/user=' + this.id).success(function(data){
-      if (data !== false) {
-        // TODO: нарисовать что-то типа "успешно удалено"
-        window.location.href = '/admin/users';
-      } else {
-        alert('Ошибка-нежданчик, перезайдите пожалуйста');
-      }
-    });
+    // В виду того, что есть регистрация через соц сети - удаление пользователя выглядит глупой фичей
   };
+  this.onAvatarRemove = function() {
+    var self = this;
+    $http.delete('/admin/user-avatar-remove=' + self.id).success(function(data){
+      if (data !== true) {
+        alert('Ошибка-нежданчик, перезайдите пожалуйста');
+        return;
+      }
+      self.alertType = 2;
+      self.avatar = '';
+    });
+  }
 } ]);
 app.filter('orderObjectBy', function() {
   return function (items, field, reverse) {
